@@ -24,6 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
 
   const validateCollegeEmail = (email: string): boolean => {
     const collegeDomains = ['.edu', '.ac.in', '.ac.uk', '.university'];
@@ -47,8 +48,120 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
-    try {
-      if (isSignUp) {
+        try {
+          // Hardcoded credentials for testing
+          if ((email === 'john.student@stanford.edu' && password === 'demo123') || demoMode) {
+            const testUser: User = {
+              id: 'test-user-123',
+              name: 'John Student',
+              email: 'john.student@stanford.edu',
+              college: 'Stanford University',
+              course: 'Computer Science',
+              courseDuration: 4,
+              courseLevel: 'undergraduate',
+              year: '3rd Year',
+              graduationDate: new Date('2025-07-01'),
+              bio: 'Passionate computer science student exploring opportunities in tech and AI. Love building projects and connecting with fellow students.',
+              isPro: false, // Regular user, can test Pro upgrade
+              connections: ['user-2', 'user-3'],
+              connectionRequests: [],
+              followers: ['user-2', 'user-4', 'user-5'],
+              following: ['user-2', 'user-3'],
+              skills: ['JavaScript', 'React', 'Python', 'Machine Learning', 'Node.js'],
+              interests: ['Technology', 'Innovation', 'AI', 'Web Development'],
+              languages: [
+                { id: '1', language: 'English', proficiency: 'native' },
+                { id: '2', language: 'Spanish', proficiency: 'intermediate' },
+                { id: '3', language: 'French', proficiency: 'beginner' }
+              ],
+              awards: [
+                { id: '1', title: 'Dean\'s List', issuer: 'Stanford University', date: new Date('2024-01-15'), category: 'academic' },
+                { id: '2', title: 'Best Project Award', issuer: 'Hackathon 2024', date: new Date('2024-02-20'), category: 'hackathon' }
+              ],
+              achievements: [
+                { id: '1', title: 'Published Research Paper', description: 'AI in Education', date: new Date('2024-01-10'), category: 'academic' },
+                { id: '2', title: 'Student Council President', description: 'Led student initiatives', date: new Date('2023-09-01'), category: 'leadership' }
+              ],
+              certifications: [
+                { id: '1', userId: 'test-user-123', courseId: '1', courseName: 'React Development', issuedDate: new Date('2024-01-10'), certificateUrl: '/certificates/react-cert.pdf' }
+              ],
+              internships: [
+                { id: '1', title: 'Software Engineering Intern', company: 'Google', location: 'Mountain View, CA', startDate: new Date('2024-06-01'), endDate: new Date('2024-08-31'), description: 'Worked on search algorithms', skills: ['Python', 'Machine Learning'], isCurrent: false },
+                { id: '2', title: 'Frontend Developer Intern', company: 'Meta', location: 'Menlo Park, CA', startDate: new Date('2024-01-01'), endDate: new Date('2024-03-31'), description: 'Developed React components', skills: ['React', 'JavaScript'], isCurrent: true }
+              ],
+              companyRecommendations: [
+                { id: '1', companyName: 'Google', recommenderName: 'Sarah Johnson', recommenderTitle: 'Senior Software Engineer', recommendation: 'John was an excellent intern with strong problem-solving skills.', date: new Date('2024-09-01'), rating: 5 }
+              ],
+              isAccountActive: true,
+              profileViews: 1250,
+              location: 'Stanford, CA',
+              linkedinUrl: 'https://linkedin.com/in/johnstudent',
+              githubUrl: 'https://github.com/johnstudent'
+            };
+            
+            onLogin(testUser);
+            setLoading(false);
+            return;
+          }
+
+          // Pro user credentials
+          if (email === 'sarah.chen@mit.edu' && password === 'pro123') {
+            const proUser: User = {
+              id: 'pro-user-456',
+              name: 'Sarah Chen',
+              email: 'sarah.chen@mit.edu',
+              college: 'MIT',
+              course: 'Computer Science',
+              courseDuration: 4,
+              courseLevel: 'undergraduate',
+              year: '3rd Year',
+              graduationDate: new Date('2025-06-15'),
+              bio: 'Software engineering intern at Google. Passionate about AI/ML and helping students break into tech.',
+              isPro: true,
+              proExpiryDate: new Date('2024-12-31'),
+              connections: ['user-1', 'user-3', 'user-4'],
+              connectionRequests: [],
+              followers: ['user-1', 'user-3', 'user-4', 'user-6', 'user-7'],
+              following: ['user-1', 'user-3'],
+              skills: ['Java', 'Python', 'React', 'Node.js', 'Machine Learning'],
+              interests: ['Technology', 'Startups', 'AI'],
+              languages: [
+                { id: '1', language: 'English', proficiency: 'native' },
+                { id: '2', language: 'Mandarin', proficiency: 'native' },
+                { id: '3', language: 'Japanese', proficiency: 'intermediate' }
+              ],
+              awards: [
+                { id: '1', title: 'Google Intern Excellence Award', issuer: 'Google', date: new Date('2024-08-15'), category: 'professional' },
+                { id: '2', title: 'MIT Dean\'s List', issuer: 'MIT', date: new Date('2024-01-20'), category: 'academic' }
+              ],
+              achievements: [
+                { id: '1', title: 'Published AI Research', description: 'Machine Learning for Healthcare', date: new Date('2024-02-15'), category: 'academic' },
+                { id: '2', title: 'Tech Startup Founder', description: 'Founded AI tutoring platform', date: new Date('2023-06-01'), category: 'leadership' }
+              ],
+              certifications: [
+                { id: '1', userId: 'pro-user-456', courseId: '2', courseName: 'Advanced Machine Learning', issuedDate: new Date('2024-01-15'), certificateUrl: '/certificates/ml-cert.pdf' }
+              ],
+              internships: [
+                { id: '1', title: 'Software Engineering Intern', company: 'Google', location: 'Mountain View, CA', startDate: new Date('2024-06-01'), endDate: new Date('2024-08-31'), description: 'Worked on AI/ML infrastructure', skills: ['Python', 'TensorFlow', 'Machine Learning'], isCurrent: false },
+                { id: '2', title: 'Research Intern', company: 'MIT AI Lab', location: 'Cambridge, MA', startDate: new Date('2024-01-01'), endDate: new Date('2024-05-31'), description: 'AI research in healthcare', skills: ['Python', 'Research', 'Statistics'], isCurrent: false }
+              ],
+              companyRecommendations: [
+                { id: '1', companyName: 'Google', recommenderName: 'Dr. Michael Zhang', recommenderTitle: 'Staff Software Engineer', recommendation: 'Sarah is an exceptional talent with deep understanding of AI/ML concepts.', date: new Date('2024-09-01'), rating: 5 },
+                { id: '2', companyName: 'MIT AI Lab', recommenderName: 'Prof. Lisa Wang', recommenderTitle: 'Research Director', recommendation: 'Outstanding research skills and innovative thinking.', date: new Date('2024-06-01'), rating: 5 }
+              ],
+              isAccountActive: true,
+              profileViews: 3250,
+              location: 'Cambridge, MA',
+              linkedinUrl: 'https://linkedin.com/in/sarahchen',
+              githubUrl: 'https://github.com/sarahchen'
+            };
+            
+            onLogin(proUser);
+            setLoading(false);
+            return;
+          }
+
+          if (isSignUp) {
         if (!formData.name || !formData.college || !formData.course || !formData.year) {
           setError('Please fill in all required fields');
           setLoading(false);
@@ -188,21 +301,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <p className="text-gray-600 mt-2">Connect. Learn. Grow.</p>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            {isSignUp ? 'Join Peerly' : 'Welcome Back'}
-          </h2>
+            {/* Form */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                {isSignUp ? 'Join Peerly - Start Your Journey' : 'Welcome Back'}
+              </h2>
 
-          {/* Demo Credentials Info */}
+          {/* Test Credentials Info */}
           {!isSignUp && (
             <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-emerald-50 border border-purple-200 rounded-lg">
-              <h3 className="font-semibold text-purple-800 mb-2">Demo Credentials</h3>
-              <div className="text-sm text-purple-700 space-y-1">
-                <p><strong>Email:</strong> john.student@stanford.edu</p>
-                <p><strong>Password:</strong> demo123</p>
+              <h3 className="font-semibold text-purple-800 mb-2">Test Credentials</h3>
+              <div className="text-sm text-purple-700 space-y-2">
+                <div className="bg-white p-2 rounded border">
+                  <p className="font-medium text-purple-800">Regular User:</p>
+                  <p><strong>Email:</strong> john.student@stanford.edu</p>
+                  <p><strong>Password:</strong> demo123</p>
+                </div>
+                <div className="bg-white p-2 rounded border">
+                  <p className="font-medium text-purple-800">Pro User:</p>
+                  <p><strong>Email:</strong> sarah.chen@mit.edu</p>
+                  <p><strong>Password:</strong> pro123</p>
+                </div>
               </div>
-              <p className="text-xs text-purple-600 mt-2">Use these credentials to explore the platform</p>
+              <p className="text-xs text-purple-600 mt-2">Use these credentials to explore the platform features</p>
             </div>
           )}
 
@@ -382,6 +503,35 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
+
+          {/* Quick Login Buttons */}
+          {!isSignUp && (
+            <div className="mt-3 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDemoMode(true);
+                  setEmail('john.student@stanford.edu');
+                  setPassword('demo123');
+                  handleSubmit(new Event('submit') as any);
+                }}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+              >
+                👤 Login as Regular User
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('sarah.chen@mit.edu');
+                  setPassword('pro123');
+                  handleSubmit(new Event('submit') as any);
+                }}
+                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+              >
+                👑 Login as Pro User
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <button

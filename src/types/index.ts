@@ -12,11 +12,25 @@ export interface User {
   bio?: string;
   isPro: boolean;
   proExpiryDate?: Date;
-  connections: string[]; // user IDs
+  connections: string[]; // user IDs for connections (mutual)
   connectionRequests: ConnectionRequest[];
+  followers: string[]; // user IDs who follow this user
+  following: string[]; // user IDs this user follows
   skills: string[];
   interests: string[];
+  languages: Language[];
+  awards: Award[];
+  achievements: Achievement[];
+  certifications: Certification[];
+  internships: UserInternship[];
+  companyRecommendations: CompanyRecommendation[];
   isAccountActive: boolean;
+  profileViews: number;
+  location?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
 }
 
 export interface ConnectionRequest {
@@ -233,4 +247,133 @@ export interface ContentModeration {
   reviewedBy?: string;
   reviewedAt?: Date;
   actionTaken: 'none' | 'warning' | 'removal' | 'account_suspension';
+}
+
+// New interfaces for enhanced profile features
+export interface Language {
+  id: string;
+  language: string;
+  proficiency: 'beginner' | 'intermediate' | 'advanced' | 'native';
+}
+
+export interface Award {
+  id: string;
+  title: string;
+  description?: string;
+  issuer: string;
+  date: Date;
+  category: 'academic' | 'professional' | 'competition' | 'hackathon' | 'other';
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description?: string;
+  date: Date;
+  category: 'academic' | 'project' | 'leadership' | 'volunteer' | 'other';
+}
+
+export interface UserInternship {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  startDate: Date;
+  endDate: Date;
+  description?: string;
+  skills: string[];
+  isCurrent: boolean;
+}
+
+export interface CompanyRecommendation {
+  id: string;
+  companyName: string;
+  recommenderName: string;
+  recommenderTitle: string;
+  recommendation: string;
+  date: Date;
+  rating: number; // 1-5 stars
+}
+
+export interface FollowRequest {
+  id: string;
+  followerId: string;
+  followingId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: Date;
+}
+
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  connectionRequests: boolean;
+  newFollowers: boolean;
+  postLikes: boolean;
+  comments: boolean;
+  messages: boolean;
+  eventInvites: boolean;
+  jobRecommendations: boolean;
+  learningUpdates: boolean;
+}
+
+export interface PrivacySettings {
+  profileVisibility: 'public' | 'connections' | 'private';
+  showEmail: boolean;
+  showPhone: boolean;
+  showLocation: boolean;
+  showConnections: boolean;
+  showFollowers: boolean;
+  allowMessagesFrom: 'everyone' | 'connections' | 'none';
+  showOnlineStatus: boolean;
+}
+
+// Advertisement system interfaces
+export interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  type: 'event' | 'video' | 'flyer' | 'course' | 'job';
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  company: string;
+  category: string[];
+  targetAudience: string[];
+  ctaText: string;
+  ctaUrl: string;
+  isActive: boolean;
+  priority: number;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+export interface UserAdInteraction {
+  id: string;
+  userId: string;
+  adId: string;
+  action: 'swipe_left' | 'swipe_right' | 'view' | 'click';
+  timestamp: Date;
+}
+
+export interface AdRecommendation {
+  adId: string;
+  score: number;
+  reason: string;
+}
+
+export interface SearchResult {
+  id: string;
+  type: 'event' | 'college' | 'student' | 'hackathon' | 'company' | 'recruiter';
+  title: string;
+  description: string;
+  location?: string;
+  date?: string;
+  image?: string;
+  tags: string[];
+  verified?: boolean;
+  rating?: number;
+  followers?: number;
+  company?: string;
+  position?: string;
+  experience?: string;
+  skills?: string[];
 }

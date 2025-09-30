@@ -17,7 +17,9 @@ import {
   Award,
   Calendar,
   FolderOpen,
-  Crown
+  Crown,
+  Settings,
+  Info
 } from 'lucide-react';
 import { User as UserType } from '../types';
 
@@ -54,7 +56,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: Award, label: 'Webinars', path: '/dashboard/webinars', proOnly: true },
     { icon: Calendar, label: 'Events', path: '/dashboard/events', proOnly: true },
     { icon: FolderOpen, label: 'Projects', path: '/dashboard/projects', proOnly: true },
-    { icon: Crown, label: 'Peerly Pro', path: '/dashboard/pro', proOnly: false },
+    { icon: Crown, label: 'Peerly Pro', path: '/pro', proOnly: false },
+  ];
+
+  const utilityMenuItems = [
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    { icon: Info, label: 'About Us', path: '/dashboard/about' },
+    { icon: Info, label: 'Privacy Policy', path: '/dashboard/privacy' },
   ];
 
   const handleNavigation = (path: string) => {
@@ -69,37 +77,32 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile menu button */}
       <button
         onClick={onToggle}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg border"
+        className="lg:hidden absolute top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg border"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:inset-0
+        w-64 h-full
+        ${isOpen ? 'block' : 'hidden'}
+        lg:block
       `}>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-purple-600 to-emerald-600">
-            <GraduationCap className="h-8 w-8 text-white mr-2" />
-            <span className="text-xl font-bold text-white">Peerly</span>
-          </div>
-
-          {/* User Info */}
-          <div className="p-4 bg-gradient-to-r from-purple-50 to-emerald-50 border-b">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+        <div className="h-full flex flex-col space-y-4">
+          {/* User Info + Regular Features Box */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            {/* User Info */}
+            <div className="flex items-center mb-3 pb-3 border-b border-gray-100">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
                 {user.name.charAt(0)}
               </div>
-              <div className="ml-3 flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+              <div className="ml-2 flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-medium text-gray-900 truncate">
                     {user.name}
                   </p>
                   {user.isPro && (
-                    <Crown className="h-4 w-4 text-yellow-500" title="Peerly Pro" />
+                    <Crown className="h-3 w-3 text-yellow-500" title="Peerly Pro" />
                   )}
                 </div>
                 <p className="text-xs text-gray-500 truncate">
@@ -110,38 +113,40 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </p>
               </div>
             </div>
+
+            {/* Regular Features Navigation */}
+            <nav className="space-y-0">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentPath === item.path || 
+                  (currentPath === '/dashboard' && item.path === '/dashboard/feed');
+                
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`
+                      w-full flex items-center px-2 py-1.5 text-left rounded-lg transition-all duration-200
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-purple-100 to-emerald-100 text-purple-700 shadow-sm' 
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <Icon className={`h-3.5 w-3.5 mr-2 ${isActive ? 'text-purple-600' : ''}`} />
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentPath === item.path || 
-                (currentPath === '/dashboard' && item.path === '/dashboard/feed');
-              
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`
-                    w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-purple-100 to-emerald-100 text-purple-700 shadow-sm' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-purple-600' : ''}`} />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-            
-            {/* Pro Features Separator */}
-            <div className="pt-4 mt-4 border-t border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
-                Pro Features
-              </p>
+          {/* Pro Features Box */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+              Pro Features
+            </p>
+            <nav className="space-y-0">
               {proMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.path;
@@ -153,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleNavigation(item.path)}
                     disabled={isProOnly}
                     className={`
-                      w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200
+                      w-full flex items-center px-2 py-1.5 text-left rounded-lg transition-all duration-200
                       ${isActive 
                         ? 'bg-gradient-to-r from-purple-100 to-emerald-100 text-purple-700 shadow-sm' 
                         : isProOnly
@@ -162,32 +167,58 @@ const Sidebar: React.FC<SidebarProps> = ({
                       }
                     `}
                   >
-                    <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-purple-600' : isProOnly ? 'text-gray-400' : ''}`} />
-                    <span className="font-medium">{item.label}</span>
-                    {isProOnly && <Crown className="h-4 w-4 ml-auto text-yellow-500" />}
+                    <Icon className={`h-3.5 w-3.5 mr-2 ${isActive ? 'text-purple-600' : isProOnly ? 'text-gray-400' : ''}`} />
+                    <span className="text-xs font-medium">{item.label}</span>
+                    {isProOnly && <Crown className="h-3 w-3 ml-auto text-yellow-500" />}
                   </button>
                 );
               })}
-            </div>
-          </nav>
-
-          {/* Logout */}
-          <div className="p-4 border-t">
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200"
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              <span className="font-medium">Sign Out</span>
-            </button>
+            </nav>
           </div>
+
+          {/* Utility Box */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <nav className="space-y-0">
+              {utilityMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentPath === item.path;
+                
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`
+                      w-full flex items-center px-2 py-1.5 text-left rounded-lg transition-all duration-200
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-purple-100 to-emerald-100 text-purple-700 shadow-sm' 
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <Icon className={`h-3.5 w-3.5 mr-2 ${isActive ? 'text-purple-600' : ''}`} />
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+              
+              {/* Sign Out Button */}
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center px-2 py-1.5 text-left rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 mt-1"
+              >
+                <LogOut className="h-3.5 w-3.5 mr-2" />
+                <span className="text-xs font-medium">Sign Out</span>
+              </button>
+            </nav>
+          </div>
+
         </div>
       </div>
 
       {/* Overlay for mobile */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-50"
+          className="lg:hidden absolute inset-0 z-30 bg-black bg-opacity-50"
           onClick={onToggle}
         />
       )}
