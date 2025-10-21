@@ -11,9 +11,11 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
   const [rotation, setRotation] = useState(0);
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
-  const [cropMode, setCropMode] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadImage();
@@ -22,23 +24,59 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
   const loadImage = () => {
     const img = new Image();
     img.onload = () => {
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      setImageLoaded(true);
       if (imgRef.current) {
         imgRef.current.src = img.src;
       }
+      // Apply transforms after image is loaded
+      setTimeout(() => applyTransforms(), 100);
     };
     img.src = imageUrl;
+  };
+
+  const getDisplayDimensions = () => {
+    if (!containerRef.current || !imageDimensions.width || !imageDimensions.height) {
+      return { width: 400, height: 300 };
+    }
+
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth - 32; // Account for padding
+    const containerHeight = container.clientHeight - 32;
+
+    const aspectRatio = imageDimensions.width / imageDimensions.height;
+    const containerAspectRatio = containerWidth / containerHeight;
+
+    let displayWidth, displayHeight;
+
+    if (aspectRatio > containerAspectRatio) {
+      // Image is wider than container
+      displayWidth = Math.min(containerWidth, imageDimensions.width);
+      displayHeight = displayWidth / aspectRatio;
+    } else {
+      // Image is taller than container
+      displayHeight = Math.min(containerHeight, imageDimensions.height);
+      displayWidth = displayHeight * aspectRatio;
+    }
+
+    // Ensure minimum size
+    displayWidth = Math.max(displayWidth, 200);
+    displayHeight = Math.max(displayHeight, 150);
+
+    return { width: displayWidth, height: displayHeight };
   };
 
   const applyTransforms = () => {
     const img = imgRef.current;
     const canvas = canvasRef.current;
-    if (!img || !canvas) return;
+    if (!img || !canvas || !imageLoaded) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
+    const displayDims = getDisplayDimensions();
+    canvas.width = displayDims.width;
+    canvas.height = displayDims.height;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -50,21 +88,47 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
 
-    // Draw image
+    // Draw image scaled to fit display dimensions
     ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
     ctx.restore();
   };
 
   useEffect(() => {
-    if (imgRef.current?.complete) {
+    if (imageLoaded) {
       applyTransforms();
     }
-  }, [rotation, flipH, flipV]);
+  }, [rotation, flipH, flipV, imageLoaded]);
 
   const handleSave = () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.toBlob((blob) => {
+      // Create a high-quality version for saving
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      if (!tempCtx) return;
+
+      // Use original image dimensions for high quality
+      tempCanvas.width = imageDimensions.width;
+      tempCanvas.height = imageDimensions.height;
+
+      const img = imgRef.current;
+      if (!img) return;
+
+      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.save();
+
+      // Move to center
+      tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+
+      // Apply transformations
+      tempCtx.rotate((rotation * Math.PI) / 180);
+      tempCtx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+
+      // Draw image at original size
+      tempCtx.drawImage(img, -tempCanvas.width / 2, -tempCanvas.height / 2, tempCanvas.width, tempCanvas.height);
+      tempCtx.restore();
+
+      tempCanvas.toBlob((blob) => {
         if (blob) {
           const editedUrl = URL.createObjectURL(blob);
           onSave(editedUrl);
@@ -72,6 +136,18 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
       }, 'image/jpeg', 0.9);
     }
   };
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (imageLoaded) {
+        applyTransforms();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [imageLoaded]);
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
@@ -100,48 +176,80 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
         </div>
 
         {/* Editor Tools */}
-        <div className="p-4 border-b bg-gray-50 flex items-center justify-center space-x-2">
-          <button
-            onClick={handleRotate}
-            className="flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <RotateCw className="h-5 w-5 mr-2 text-gray-700" />
-            Rotate
-          </button>
-          <button
-            onClick={handleFlipH}
-            className={`flex items-center px-4 py-2 border rounded-lg transition-colors ${
-              flipH ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-300 hover:bg-gray-100'
-            }`}
-          >
-            <FlipHorizontal className="h-5 w-5 mr-2" />
-            Flip H
-          </button>
-          <button
-            onClick={handleFlipV}
-            className={`flex items-center px-4 py-2 border rounded-lg transition-colors ${
-              flipV ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-300 hover:bg-gray-100'
-            }`}
-          >
-            <FlipVertical className="h-5 w-5 mr-2" />
-            Flip V
-          </button>
+        <div className="p-4 border-b bg-gray-50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-600">
+              {imageLoaded && (
+                <span>
+                  Original: {imageDimensions.width} × {imageDimensions.height}px
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-600">
+              {rotation !== 0 && `Rotated: ${rotation}°`}
+              {flipH && ' • Flipped H'}
+              {flipV && ' • Flipped V'}
+            </div>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <button
+              onClick={handleRotate}
+              className="flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <RotateCw className="h-5 w-5 mr-2 text-gray-700" />
+              Rotate
+            </button>
+            <button
+              onClick={handleFlipH}
+              className={`flex items-center px-4 py-2 border rounded-lg transition-colors ${
+                flipH ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <FlipHorizontal className="h-5 w-5 mr-2" />
+              Flip H
+            </button>
+            <button
+              onClick={handleFlipV}
+              className={`flex items-center px-4 py-2 border rounded-lg transition-colors ${
+                flipV ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <FlipVertical className="h-5 w-5 mr-2" />
+              Flip V
+            </button>
+          </div>
         </div>
 
         {/* Preview Area */}
-        <div className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center p-8">
+        <div 
+          ref={containerRef}
+          className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center p-8"
+        >
           <div className="relative max-w-full max-h-full">
             <img
               ref={imgRef}
               src={imageUrl}
               alt="Edit preview"
               className="hidden"
-              onLoad={applyTransforms}
             />
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-full object-contain"
-            />
+            {imageLoaded ? (
+              <canvas
+                ref={canvasRef}
+                className="max-w-full max-h-full object-contain border border-gray-600 rounded-lg"
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center w-96 h-64 bg-gray-800 rounded-lg">
+                <div className="text-gray-400 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+                  <p>Loading image...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
