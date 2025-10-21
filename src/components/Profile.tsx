@@ -50,6 +50,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showMediaEditor, setShowMediaEditor] = useState(false);
   const [tempMediaUrl, setTempMediaUrl] = useState<string | null>(null);
+  const [mediaValidationResult, setMediaValidationResult] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -109,7 +110,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     }
   };
 
-  const handleMediaFileSelect = (file: File) => {
+  const handleMediaFileSelect = (file: File, validationResult?: any) => {
     try {
       // Validate file size
       const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
@@ -135,6 +136,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         const previewUrl = URL.createObjectURL(file);
         setTempMediaUrl(previewUrl);
         setImageFile(file);
+        setMediaValidationResult(validationResult);
         setShowMediaEditor(true);
       } else {
         // For videos, add directly (no editing)
@@ -766,7 +768,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           onCancel={() => {
             setShowMediaEditor(false);
             setTempMediaUrl(null);
+            setMediaValidationResult(null);
           }}
+          autoCropSuggestion={mediaValidationResult?.autoCropSuggestion}
         />
       )}
     </div>

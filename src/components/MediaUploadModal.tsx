@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Upload, X, AlertTriangle, CheckCircle, Info, Crop } from 'lucide-react';
 import { validateImage, validateVideo, MediaValidationResult } from '../lib/mediaValidation';
 
 interface MediaUploadModalProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (file: File, validationResult?: MediaValidationResult) => void;
   onClose: () => void;
 }
 
@@ -38,7 +38,7 @@ const MediaUploadModal: React.FC<MediaUploadModalProps> = ({ onFileSelect, onClo
         
         // If valid or only has warnings, proceed with file selection
         if (result.isValid || (result.errors.length === 0 && result.warnings.length > 0)) {
-          onFileSelect(file);
+          onFileSelect(file, result);
         }
       } catch (error) {
         setValidationResult({
@@ -137,6 +137,30 @@ const MediaUploadModal: React.FC<MediaUploadModalProps> = ({ onFileSelect, onClo
                       <div>
                         <h4 className="font-medium text-green-800">File is ready!</h4>
                         <p className="text-sm text-green-700 mt-1">Your media meets all requirements.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Auto-Crop Suggestion */}
+                {validationResult.autoCropSuggestion && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <Crop className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-purple-800 mb-2">Auto-Crop Suggestion</h4>
+                        <p className="text-sm text-purple-700 mb-3">
+                          Your image doesn't match the recommended aspect ratio. We suggest cropping to {validationResult.suggestedAspectRatio} for optimal posting.
+                        </p>
+                        <button
+                          onClick={() => {
+                            // Apply auto-crop suggestion
+                            onFileSelect(file, validationResult);
+                          }}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Apply Auto-Crop ({validationResult.autoCropSuggestion.width}×{validationResult.autoCropSuggestion.height}px)
+                        </button>
                       </div>
                     </div>
                   </div>

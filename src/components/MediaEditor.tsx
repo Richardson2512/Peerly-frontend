@@ -5,9 +5,16 @@ interface MediaEditorProps {
   imageUrl: string;
   onSave: (editedImageUrl: string) => void;
   onCancel: () => void;
+  autoCropSuggestion?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    aspectRatio: string;
+  };
 }
 
-const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel }) => {
+const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, autoCropSuggestion }) => {
   const [rotation, setRotation] = useState(0);
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
@@ -188,19 +195,34 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
   // Initialize crop area when entering crop mode
   useEffect(() => {
     if (cropMode && imageLoaded) {
-      const displayDims = getDisplayDimensions();
-      const centerX = displayDims.width / 2;
-      const centerY = displayDims.height / 2;
-      const cropSize = Math.min(displayDims.width, displayDims.height) * 0.6;
-      
-      setCropArea({
-        x: centerX - cropSize / 2,
-        y: centerY - cropSize / 2,
-        width: cropSize,
-        height: cropSize
-      });
+      if (autoCropSuggestion) {
+        // Use auto-crop suggestion
+        const displayDims = getDisplayDimensions();
+        const scaleX = displayDims.width / imageDimensions.width;
+        const scaleY = displayDims.height / imageDimensions.height;
+        
+        setCropArea({
+          x: autoCropSuggestion.x * scaleX,
+          y: autoCropSuggestion.y * scaleY,
+          width: autoCropSuggestion.width * scaleX,
+          height: autoCropSuggestion.height * scaleY
+        });
+      } else {
+        // Default centered crop
+        const displayDims = getDisplayDimensions();
+        const centerX = displayDims.width / 2;
+        const centerY = displayDims.height / 2;
+        const cropSize = Math.min(displayDims.width, displayDims.height) * 0.6;
+        
+        setCropArea({
+          x: centerX - cropSize / 2,
+          y: centerY - cropSize / 2,
+          width: cropSize,
+          height: cropSize
+        });
+      }
     }
-  }, [cropMode, imageLoaded]);
+  }, [cropMode, imageLoaded, autoCropSuggestion, imageDimensions]);
 
   const handleSave = () => {
     const canvas = canvasRef.current;
@@ -531,6 +553,18 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
               <Crop className="h-5 w-5 mr-2" />
               Crop
             </button>
+            {autoCropSuggestion && (
+              <button
+                onClick={() => {
+                  setCropMode(true);
+                  // Auto-crop suggestion will be applied in useEffect
+                }}
+                className="flex items-center px-4 py-2 bg-green-100 border border-green-500 text-green-700 rounded-lg transition-colors hover:bg-green-200"
+              >
+                <Crop className="h-5 w-5 mr-2" />
+                Auto-Crop ({autoCropSuggestion.aspectRatio})
+              </button>
+            )}
           </div>
         </div>
 

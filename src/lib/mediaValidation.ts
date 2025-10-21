@@ -4,6 +4,15 @@ export interface MediaValidationResult {
   errors: string[];
   warnings: string[];
   recommendations: string[];
+  suggestedSize?: ImageDimensions;
+  suggestedAspectRatio?: string;
+  autoCropSuggestion?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    aspectRatio: string;
+  };
 }
 
 export interface ImageDimensions {
@@ -71,18 +80,16 @@ export const validateImage = async (file: File): Promise<MediaValidationResult> 
       errors.push(`Image too small. Minimum: ${IMAGE_SPECS.MIN_DIMENSIONS.width}×${IMAGE_SPECS.MIN_DIMENSIONS.height}px`);
     }
 
-    // Check aspect ratio
+    // Analyze best fit size and suggest auto-crop
+    const sizeAnalysis = analyzeBestFitSize(dimensions);
     const aspectRatio = dimensions.width / dimensions.height;
-    const validAspectRatios = Object.values(IMAGE_SPECS.ASPECT_RATIOS);
-    const closestAspect = validAspectRatios.reduce((closest, spec) => {
-      const diff = Math.abs(aspectRatio - spec.ratio);
-      const closestDiff = Math.abs(aspectRatio - closest.ratio);
-      return diff < closestDiff ? spec : closest;
-    });
 
-    if (Math.abs(aspectRatio - closestAspect.ratio) > 0.1) {
-      warnings.push(`Non-standard aspect ratio. Recommended: ${closestAspect.name}`);
-      recommendations.push(`Consider cropping to ${closestAspect.width}×${closestAspect.height}px for best results`);
+    if (sizeAnalysis.autoCropSuggestion) {
+      warnings.push(`Image doesn't match recommended aspect ratios`);
+      recommendations.push(`Auto-crop suggestion: ${sizeAnalysis.bestFit.name} (${sizeAnalysis.bestFit.width}×${sizeAnalysis.bestFit.height}px)`);
+      recommendations.push(`Crop area: ${sizeAnalysis.autoCropSuggestion.width}×${sizeAnalysis.autoCropSuggestion.height}px from position (${sizeAnalysis.autoCropSuggestion.x}, ${sizeAnalysis.autoCropSuggestion.y})`);
+    } else {
+      recommendations.push(`Perfect! Image matches ${sizeAnalysis.bestFit.name} aspect ratio`);
     }
 
     // Check if dimensions are optimal
@@ -103,7 +110,10 @@ export const validateImage = async (file: File): Promise<MediaValidationResult> 
     isValid: errors.length === 0,
     errors,
     warnings,
-    recommendations
+    recommendations,
+    suggestedSize: sizeAnalysis?.bestFit,
+    suggestedAspectRatio: sizeAnalysis?.bestFit?.name,
+    autoCropSuggestion: sizeAnalysis?.autoCropSuggestion
   };
 };
 
@@ -208,4 +218,83 @@ export const getRecommendedDimensions = (currentDimensions: ImageDimensions, typ
       height: spec.height
     }));
   }
+};
+
+export const analyzeBestFitSize = (originalDimensions: ImageDimensions): {
+  bestFit: typeof IMAGE_SPECS.ASPECT_RATIOS[keyof typeof IMAGE_SPECS.ASPECT_RATIOS];
+  autoCropSuggestion?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    aspectRatio: string;
+  };
+} => {
+  const aspectRatio = originalDimensions.width / originalDimensions.height;
+  const tolerance = 0.1; // 10% tolerance for aspect ratio matching
+
+  // Check if image already matches a recommended aspect ratio
+  for (const [key, spec] of Object.entries(IMAGE_SPECS.ASPECT_RATIOS)) {
+    if (Math.abs(aspectRatio - spec.ratio) <= tolerance) {
+      return { bestFit: spec };
+    }
+  }
+
+  // Find the closest aspect ratio
+  let closestRatio = IMAGE_SPECS.ASPECT_RATIOS.LANDSCAPE;
+  let smallestDiff = Math.abs(aspectRatio - IMAGE_SPECS.ASPECT_RATIOS.LANDSCAPE.ratio);
+
+  for (const spec of Object.values(IMAGE_SPECS.ASPECT_RATIOS)) {
+    const diff = Math.abs(aspectRatio - spec.ratio);
+    if (diff < smallestDiff) {
+      smallestDiff = diff;
+      closestRatio = spec;
+    }
+  }
+
+  // Calculate auto-crop suggestion
+  const autoCropSuggestion = calculateAutoCrop(originalDimensions, closestRatio);
+
+  return {
+    bestFit: closestRatio,
+    autoCropSuggestion
+  };
+};
+
+const calculateAutoCrop = (
+  originalDimensions: ImageDimensions,
+  targetSpec: typeof IMAGE_SPECS.ASPECT_RATIOS[keyof typeof IMAGE_SPECS.ASPECT_RATIOS]
+): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  aspectRatio: string;
+} => {
+  const { width: origWidth, height: origHeight } = originalDimensions;
+  const targetRatio = targetSpec.ratio;
+
+  let cropWidth, cropHeight, cropX, cropY;
+
+  if (origWidth / origHeight > targetRatio) {
+    // Image is wider than target ratio - crop width
+    cropHeight = origHeight;
+    cropWidth = origHeight * targetRatio;
+    cropX = (origWidth - cropWidth) / 2;
+    cropY = 0;
+  } else {
+    // Image is taller than target ratio - crop height
+    cropWidth = origWidth;
+    cropHeight = origWidth / targetRatio;
+    cropX = 0;
+    cropY = (origHeight - cropHeight) / 2;
+  }
+
+  return {
+    x: Math.round(cropX),
+    y: Math.round(cropY),
+    width: Math.round(cropWidth),
+    height: Math.round(cropHeight),
+    aspectRatio: targetSpec.name
+  };
 };
