@@ -92,5 +92,26 @@ USING (bucket_id = 'posts');
 -- You can set these in Supabase Dashboard under Storage settings
 -- Recommended:
 -- - Avatars: Max 2MB
--- - Posts: Max 10MB for images, 50MB for videos
+-- - Posts: Max 10MB for images, 4GB for videos (as per media validation specs)
+
+-- ============================================
+-- ADDITIONAL STORAGE CONFIGURATION
+-- ============================================
+-- These settings can be configured in Supabase Dashboard:
+
+-- 1. Go to Storage > Settings
+-- 2. Set file size limits:
+--    - Avatars bucket: 2MB max
+--    - Posts bucket: 4GB max (to support video uploads)
+-- 3. Enable public access for both buckets
+-- 4. Set cache control headers for better performance
+
+-- ============================================
+-- MEDIA VALIDATION INTEGRATION
+-- ============================================
+-- The frontend now includes comprehensive media validation:
+-- - Images: Min 552x368px, Recommended 1200x627px
+-- - Videos: 3s-10min duration, 1:2.4 to 2.4:1 aspect ratio
+-- - File size limits enforced before upload
+-- - Real-time validation feedback in MediaUploadModal
 
