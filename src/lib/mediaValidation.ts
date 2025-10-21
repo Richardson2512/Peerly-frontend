@@ -64,14 +64,27 @@ export const validateImage = async (file: File): Promise<MediaValidationResult> 
   // Check file type
   if (!IMAGE_SPECS.SUPPORTED_FORMATS.includes(file.type)) {
     errors.push(`Unsupported image format. Supported: ${IMAGE_SPECS.SUPPORTED_FORMATS.join(', ')}`);
+    return {
+      isValid: false,
+      errors,
+      warnings,
+      recommendations
+    };
   }
 
   // Check file size
   if (file.size > IMAGE_SPECS.MAX_FILE_SIZE) {
     errors.push(`File too large. Maximum size: ${(IMAGE_SPECS.MAX_FILE_SIZE / (1024 * 1024)).toFixed(0)}MB`);
+    return {
+      isValid: false,
+      errors,
+      warnings,
+      recommendations
+    };
   }
 
   // Get image dimensions
+  let sizeAnalysis: any = null;
   try {
     const dimensions = await getImageDimensions(file);
     
@@ -81,7 +94,7 @@ export const validateImage = async (file: File): Promise<MediaValidationResult> 
     }
 
     // Analyze best fit size and suggest auto-crop
-    const sizeAnalysis = analyzeBestFitSize(dimensions);
+    sizeAnalysis = analyzeBestFitSize(dimensions);
     const aspectRatio = dimensions.width / dimensions.height;
 
     if (sizeAnalysis.autoCropSuggestion) {
@@ -103,7 +116,10 @@ export const validateImage = async (file: File): Promise<MediaValidationResult> 
     recommendations.push(`Current size: ${dimensions.width}×${dimensions.height}px (${aspectRatio.toFixed(2)}:1)`);
 
   } catch (error) {
-    errors.push('Could not read image dimensions');
+    console.error('Image validation error:', error);
+    warnings.push('Could not read image dimensions - proceeding with basic validation');
+    recommendations.push('File appears to be a valid image but dimensions could not be analyzed');
+    recommendations.push('You can still use this image, but consider checking the file format');
   }
 
   return {
@@ -175,11 +191,19 @@ export const validateVideo = async (file: File): Promise<MediaValidationResult> 
 export const getImageDimensions = (file: File): Promise<ImageDimensions> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       resolve({ width: img.naturalWidth, height: img.naturalHeight });
     };
-    img.onerror = () => reject(new Error('Could not load image'));
-    img.src = URL.createObjectURL(file);
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not load image'));
+    };
+    
+    img.src = objectUrl;
   });
 };
 

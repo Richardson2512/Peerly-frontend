@@ -41,9 +41,10 @@ const MediaUploadModal: React.FC<MediaUploadModalProps> = ({ onFileSelect, onClo
           onFileSelect(file, result);
         }
       } catch (error) {
+        console.error('File validation error:', error);
         setValidationResult({
           isValid: false,
-          errors: ['Could not validate file'],
+          errors: [`Could not validate file: ${error instanceof Error ? error.message : 'Unknown error'}`],
           warnings: [],
           recommendations: []
         });
