@@ -20,7 +20,7 @@ const About: React.FC = () => {
   const features = [
     {
       icon: Users,
-      title: 'Student Networking',
+      title: 'Student Peer Connection',
       description: 'Connect with fellow students from colleges worldwide and build meaningful professional relationships.'
     },
     {
@@ -104,7 +104,7 @@ const About: React.FC = () => {
                 that connects them with opportunities, mentors, and peers to accelerate their career growth 
                 and personal development.
               </p>
-              <div className="bg-gradient-to-r from-purple-50 to-emerald-50 p-6 rounded-xl">
+              <div className="bg-gradient-to-r from-purple-50 to-emerald-50 p-6 rounded-md">
                 <p className="text-gray-700 italic">
                   "Building bridges between students and their dreams, one connection at a time."
                 </p>
@@ -121,7 +121,7 @@ const About: React.FC = () => {
                 can find their tribe, discover opportunities, and build a successful career through 
                 meaningful connections and continuous learning.
               </p>
-              <div className="bg-gradient-to-r from-emerald-50 to-purple-50 p-6 rounded-xl">
+              <div className="bg-gradient-to-r from-emerald-50 to-purple-50 p-6 rounded-md">
                 <p className="text-gray-700 italic">
                   "A world where every student has access to the network and resources they need to succeed."
                 </p>
@@ -146,7 +146,7 @@ const About: React.FC = () => {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                <div key={index} className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                   <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center mb-6">
                     <Icon className="h-8 w-8 text-white" />
                   </div>
@@ -196,7 +196,7 @@ const About: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg p-8 max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-emerald-600 rounded-full mb-4">
                 <Star className="h-8 w-8 text-white" />
@@ -234,7 +234,7 @@ const About: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-lg">
               <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mb-6">
                 <Globe className="h-6 w-6 text-white" />
               </div>
@@ -245,7 +245,7 @@ const About: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-8 rounded-2xl">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-8 rounded-lg">
               <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mb-6">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
@@ -256,7 +256,7 @@ const About: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg">
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-6">
                 <Briefcase className="h-6 w-6 text-white" />
               </div>

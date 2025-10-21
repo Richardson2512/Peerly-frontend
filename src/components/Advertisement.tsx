@@ -228,7 +228,7 @@ const Advertisement: React.FC<AdvertisementProps> = ({ user, onInteraction }) =>
       <div 
         ref={adRef}
         className={`
-          relative bg-white rounded-2xl shadow-lg overflow-hidden cursor-grab active:cursor-grabbing
+          relative bg-white rounded-lg shadow-lg overflow-hidden cursor-grab active:cursor-grabbing
           transition-transform duration-300 ease-out
           ${isDragging ? 'scale-105 shadow-2xl' : ''}
           ${swipeDirection === 'left' ? 'rotate-12 translate-x-[-100%] opacity-0' : ''}

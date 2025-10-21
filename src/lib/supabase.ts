@@ -1,12 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { appConfig } from '../config/app.config';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = appConfig.supabase.url;
+const supabaseAnonKey = appConfig.supabase.anonKey;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database table types
@@ -21,7 +19,7 @@ export interface Database {
           college: string;
           course: string;
           course_duration: number;
-          course_level: 'undergraduate' | 'postgraduate' | 'phd';
+          course_level: 'diploma' | 'undergraduate' | 'postgraduate' | 'phd';
           year: string;
           graduation_date: string;
           avatar_url?: string;
@@ -41,7 +39,7 @@ export interface Database {
           college: string;
           course: string;
           course_duration: number;
-          course_level: 'undergraduate' | 'postgraduate' | 'phd';
+          course_level: 'diploma' | 'undergraduate' | 'postgraduate' | 'phd';
           year: string;
           graduation_date: string;
           avatar_url?: string;

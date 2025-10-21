@@ -37,7 +37,7 @@ const LandingPage: React.FC = () => {
   const features = [
     {
       icon: Users,
-      title: 'Student Networking',
+      title: 'Student Peer Connection',
       description: 'Connect with fellow students from colleges worldwide and build meaningful professional relationships.',
       color: 'from-blue-500 to-blue-600'
     },
@@ -205,7 +205,7 @@ const LandingPage: React.FC = () => {
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               The Future of{' '}
               <span className="bg-gradient-to-r from-purple-600 to-emerald-600 bg-clip-text text-transparent">
-                Student Networking
+                Student Peer Connection
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
@@ -215,19 +215,19 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <button
                 onClick={() => navigate('/login')}
-                className="bg-gradient-to-r from-purple-600 to-emerald-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+                className="bg-gradient-to-r from-purple-600 to-emerald-600 text-white px-8 py-4 rounded-md font-semibold text-lg hover:from-purple-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
               >
                 Get Started Free
                 <ArrowRight className="inline h-5 w-5 ml-2" />
               </button>
-              <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-semibold text-lg hover:border-purple-600 hover:text-purple-600 transition-all flex items-center justify-center">
+              <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-md font-semibold text-lg hover:border-purple-600 hover:text-purple-600 transition-all flex items-center justify-center">
                 <Play className="h-5 w-5 mr-2" />
                 Watch Demo
               </button>
             </div>
 
             {/* Mobile App Download */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center space-x-4 mb-4">
                   <Smartphone className="h-8 w-8 text-purple-600" />
@@ -297,7 +297,7 @@ const LandingPage: React.FC = () => {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                <div key={index} className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                   <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-full flex items-center justify-center mb-6`}>
                     <Icon className="h-8 w-8 text-white" />
                   </div>
@@ -322,7 +322,7 @@ const LandingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gray-50 p-8 rounded-2xl">
+              <div key={index} className="bg-gray-50 p-8 rounded-lg">
                 <div className="text-center mb-6">
                   <div className="text-4xl mb-4">{testimonial.avatar}</div>
                   <h3 className="text-lg font-semibold text-gray-900">{testimonial.name}</h3>
@@ -346,7 +346,7 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg p-8 max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-emerald-600 rounded-full mb-4">
                 <Star className="h-8 w-8 text-white" />
@@ -390,7 +390,7 @@ const LandingPage: React.FC = () => {
                 that connects them with opportunities, mentors, and peers to accelerate their career growth 
                 and personal development.
               </p>
-              <div className="bg-gradient-to-r from-purple-50 to-emerald-50 p-6 rounded-xl">
+              <div className="bg-gradient-to-r from-purple-50 to-emerald-50 p-6 rounded-md">
                 <p className="text-gray-700 italic">
                   "Building bridges between students and their dreams, one connection at a time."
                 </p>
@@ -407,7 +407,7 @@ const LandingPage: React.FC = () => {
                 can find their tribe, discover opportunities, and build a successful career through 
                 meaningful connections and continuous learning.
               </p>
-              <div className="bg-gradient-to-r from-emerald-50 to-purple-50 p-6 rounded-xl">
+              <div className="bg-gradient-to-r from-emerald-50 to-purple-50 p-6 rounded-md">
                 <p className="text-gray-700 italic">
                   "A world where every student has access to the network and resources they need to succeed."
                 </p>

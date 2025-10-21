@@ -159,7 +159,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             This exclusive feature is available only for Peerly Pro members. Connect with verified alumni from top companies for mentorship and career guidance.
           </p>
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6 max-w-md mx-auto">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-md p-6 max-w-md mx-auto">
             <h3 className="text-lg font-semibold text-purple-800 mb-2">Upgrade to Peerly Pro</h3>
             <p className="text-purple-600 mb-4">Get access to verified alumni network and mentorship opportunities</p>
             <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200">
@@ -180,7 +180,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-md shadow-sm border p-6">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-500 mr-3" />
             <div>
@@ -189,7 +189,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-md shadow-sm border p-6">
           <div className="flex items-center">
             <Building className="h-8 w-8 text-green-500 mr-3" />
             <div>
@@ -198,7 +198,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-md shadow-sm border p-6">
           <div className="flex items-center">
             <TrendingUp className="h-8 w-8 text-purple-500 mr-3" />
             <div>
@@ -209,7 +209,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-md shadow-sm border p-6">
           <div className="flex items-center">
             <Award className="h-8 w-8 text-yellow-500 mr-3" />
             <div>
@@ -277,7 +277,7 @@ const AlumniConnect: React.FC<AlumniProps> = ({ user }) => {
       {/* Alumni Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAlumni.map((alumnus) => (
-          <div key={alumnus.id} className="bg-white rounded-xl shadow-sm border p-6">
+          <div key={alumnus.id} className="bg-white rounded-md shadow-sm border p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
                 {getInitials(alumnus.name)}

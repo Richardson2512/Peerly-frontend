@@ -150,8 +150,8 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
   const currentMessages = messages.filter(msg => msg.conversationId === selectedConversation);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 h-full">
-      <div className="bg-white rounded-xl shadow-sm border h-full flex">
+    <div className="w-full p-4 h-full">
+      <div className="bg-white rounded-md shadow-sm border h-full flex">
         {/* Conversations Sidebar */}
         <div className="w-1/3 border-r border-gray-200 flex flex-col">
           {/* Header */}

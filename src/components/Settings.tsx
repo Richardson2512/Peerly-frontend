@@ -123,7 +123,7 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm mb-6">
+      <div className="bg-white rounded-md shadow-sm mb-6">
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             {[

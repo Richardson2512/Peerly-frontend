@@ -103,7 +103,7 @@ const News: React.FC<NewsProps> = ({ user }) => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
         <div className="lg:w-1/4">
-          <div className="bg-white rounded-xl shadow-sm border p-6 sticky top-4">
+          <div className="bg-white rounded-md shadow-sm border p-6 sticky top-4">
             <h3 className="font-semibold text-gray-900 mb-4">Categories</h3>
             <div className="space-y-2">
               {categories.map((category) => (
@@ -134,7 +134,7 @@ const News: React.FC<NewsProps> = ({ user }) => {
         <div className="lg:w-3/4">
           <div className="space-y-6">
             {filteredNews.map((news) => (
-              <article key={news.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+              <article key={news.id} className="bg-white rounded-md shadow-sm border hover:shadow-md transition-shadow">
                 {news.image && (
                   <div className="aspect-video w-full overflow-hidden rounded-t-xl">
                     <img
@@ -192,7 +192,7 @@ const News: React.FC<NewsProps> = ({ user }) => {
           </div>
 
           {filteredNews.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border">
+            <div className="text-center py-12 bg-white rounded-md border">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Tag className="h-8 w-8 text-gray-400" />
               </div>

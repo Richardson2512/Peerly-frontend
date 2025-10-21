@@ -172,7 +172,7 @@ const Internships: React.FC<InternshipsProps> = ({ user }) => {
 
       {/* Pro Features Notice */}
       {!user.isPro && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-md p-6 mb-6">
           <div className="flex items-center">
             <Crown className="h-8 w-8 text-yellow-600 mr-3" />
             <div>
@@ -219,7 +219,7 @@ const Internships: React.FC<InternshipsProps> = ({ user }) => {
 
       {/* Search and Filters */}
       {(activeTab === 'all' || activeTab === 'applied') && (
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded-md shadow-sm border p-6 mb-6">
           <div className="flex flex-col gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -296,7 +296,7 @@ const Internships: React.FC<InternshipsProps> = ({ user }) => {
         </div>
       ) : activeTab === 'tracker' ? (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-md shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
@@ -330,7 +330,7 @@ const Internships: React.FC<InternshipsProps> = ({ user }) => {
               if (!internship) return null;
 
               return (
-                <div key={application.id} className="bg-white rounded-xl shadow-sm border p-6">
+                <div key={application.id} className="bg-white rounded-md shadow-sm border p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h4 className="font-semibold text-gray-900">{internship.title}</h4>
@@ -388,7 +388,7 @@ const Internships: React.FC<InternshipsProps> = ({ user }) => {
               const applicationStatus = getApplicationStatus(internship.id);
               
               return (
-                <div key={internship.id} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+                <div key={internship.id} className="bg-white rounded-md shadow-sm border hover:shadow-md transition-shadow">
                   <div className="p-6">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">

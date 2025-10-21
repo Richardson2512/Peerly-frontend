@@ -245,7 +245,7 @@ const Webinars: React.FC<WebinarsProps> = ({ user }) => {
           const isPast = webinar.date <= new Date();
           
           return (
-            <div key={webinar.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div key={webinar.id} className="bg-white rounded-md shadow-sm border overflow-hidden">
               <div className="relative">
                 <img
                   src={webinar.thumbnail}

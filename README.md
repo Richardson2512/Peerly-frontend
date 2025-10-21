@@ -1,8 +1,8 @@
 # Peerly Frontend
 
-A comprehensive student networking platform built with React, TypeScript, and Supabase. Peerly connects college students for networking, learning, and career opportunities.
+A comprehensive student peer connection platform built with React, TypeScript, and Supabase. Peerly connects college students for peer networking, learning, and career opportunities.
 
-![Peerly Logo](https://img.shields.io/badge/Peerly-Student%20Network-purple?style=for-the-badge&logo=graduation-cap)
+![Peerly Logo](https://img.shields.io/badge/Peerly-Student%20Peer%20Connection-purple?style=for-the-badge&logo=graduation-cap)
 
 ## 🚀 Live Demo
 
@@ -16,7 +16,7 @@ The complete Peerly platform is now live and ready for students to use!
 - **Account Expiration**: Automatic locking after graduation
 - **Secure Authentication**: Supabase Auth integration
 
-### 🤝 Social Networking
+### 🤝 Social Peer Connection
 - **LinkedIn-style Connections**: Send/receive connection requests
 - **Direct Messaging**: Chat with connected users
 - **Social Feed**: Posts with images, videos, likes, comments
@@ -111,7 +111,7 @@ The backend database schema is available in the `backend/` folder. To set up you
 - Real-time chat functionality
 - Message history and read status
 
-### 🔗 Network
+### 🔗 Peer
 - Browse and connect with other students
 - Send connection requests with custom messages
 - Manage connection requests (accept/reject)

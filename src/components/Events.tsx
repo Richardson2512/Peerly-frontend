@@ -286,7 +286,7 @@ const Events: React.FC<EventsProps> = ({ user }) => {
           const isRegistered = registeredEvents.includes(event.id);
           
           return (
-            <div key={event.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div key={event.id} className="bg-white rounded-md shadow-sm border overflow-hidden">
               <div className="relative">
                 <img
                   src={event.image}

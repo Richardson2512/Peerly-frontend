@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { GraduationCap, Mail, Lock, AlertCircle } from 'lucide-react';
 import { User } from '../types';
 import { supabase, db } from '../lib/supabase';
+import { initializeUserStorage } from '../lib/storage';
+import AutocompleteInput from './AutocompleteInput';
+import { filterColleges, addCollege } from '../data/colleges';
+import { filterCourses, addCourse } from '../data/courses';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -16,7 +20,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     college: '',
     course: '',
     courseDuration: 4,
-    courseLevel: 'undergraduate' as 'undergraduate' | 'postgraduate' | 'phd',
+    courseLevel: 'undergraduate' as 'diploma' | 'undergraduate' | 'postgraduate' | 'phd',
     year: '',
     graduationYear: new Date().getFullYear() + 1,
     skills: [] as string[],
@@ -25,6 +29,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  
+  // Refs for focusing next fields
+  const courseInputRef = useRef<HTMLDivElement>(null);
+  const courseLevelRef = useRef<HTMLSelectElement>(null);
 
   const validateCollegeEmail = (email: string): boolean => {
     const collegeDomains = ['.edu', '.ac.in', '.ac.uk', '.university'];
@@ -42,6 +50,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
     setLoading(true);
 
+    // Validate password length
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      setLoading(false);
+      return;
+    }
+
     if (!validateCollegeEmail(email)) {
       setError('Please use your college email address (.edu, .ac.in, etc.). Gmail, Outlook, Yahoo, and Hotmail are not allowed.');
       setLoading(false);
@@ -49,8 +64,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
 
         try {
-          // Hardcoded credentials for testing
-          if ((email === 'john.student@stanford.edu' && password === 'demo123') || demoMode) {
+          // Skip hardcoded credentials check if signing up
+          if (!isSignUp && ((email === 'john.student@stanford.edu' && password === 'demo123') || demoMode)) {
             const testUser: User = {
               id: 'test-user-123',
               name: 'John Student',
@@ -104,8 +119,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             return;
           }
 
-          // Pro user credentials
-          if (email === 'sarah.chen@mit.edu' && password === 'pro123') {
+          // Pro user credentials (skip if signing up)
+          if (!isSignUp && email === 'sarah.chen@mit.edu' && password === 'pro123') {
             const proUser: User = {
               id: 'pro-user-456',
               name: 'Sarah Chen',
@@ -180,55 +195,90 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              name: formData.name,
+              college: formData.college,
+            },
+            emailRedirectTo: window.location.origin
+          }
         });
 
         if (authError) {
-          setError(authError.message);
+          console.error('Signup error:', authError);
+          setError(authError.message || 'Failed to create account. Please try again.');
           setLoading(false);
           return;
         }
 
+        // Check if email confirmation is required
+        if (authData.user && !authData.session) {
+          setError('Please check your email to confirm your account before logging in.');
+          setLoading(false);
+          setIsSignUp(false);
+          return;
+        }
+
         if (authData.user) {
-          // Create user profile in database
-          const userData = {
-            id: authData.user.id,
-            name: formData.name,
-            email,
-            college: formData.college,
-            course: formData.course,
-            course_duration: formData.courseDuration,
-            course_level: formData.courseLevel,
-            year: formData.year,
-            graduation_date: graduationDate.toISOString().split('T')[0],
-            skills: formData.skills,
-            interests: formData.interests,
-            is_pro: false,
-            is_account_active: true
-          };
+          try {
+            // Create user profile in database
+            const userData = {
+              id: authData.user.id,
+              name: formData.name,
+              email,
+              college: formData.college,
+              course: formData.course,
+              course_duration: formData.courseDuration,
+              course_level: formData.courseLevel,
+              year: formData.year,
+              graduation_date: graduationDate.toISOString().split('T')[0],
+              skills: formData.skills,
+              interests: formData.interests,
+              is_pro: false,
+              is_account_active: true
+            };
 
-          await db.createUser(userData);
+            await db.createUser(userData);
 
-          // Convert to User type for the app
-          const user: User = {
-            id: authData.user.id,
-            name: formData.name,
-            email,
-            college: formData.college,
-            course: formData.course,
-            courseDuration: formData.courseDuration,
-            courseLevel: formData.courseLevel,
-            year: formData.year,
-            graduationDate,
-            bio: 'Passionate student exploring new opportunities in tech.',
-            isPro: false,
-            connections: [],
-            connectionRequests: [],
-            skills: formData.skills,
-            interests: formData.interests,
-            isAccountActive: true
-          };
+            // Initialize user storage buckets
+            await initializeUserStorage(authData.user.id);
 
-          onLogin(user);
+            // Convert to User type for the app
+            const user: User = {
+              id: authData.user.id,
+              name: formData.name,
+              email,
+              college: formData.college,
+              course: formData.course,
+              courseDuration: formData.courseDuration,
+              courseLevel: formData.courseLevel,
+              year: formData.year,
+              graduationDate,
+              bio: 'Passionate student exploring new opportunities in tech.',
+              isPro: false,
+              connections: [],
+              connectionRequests: [],
+              followers: [],
+              following: [],
+              skills: formData.skills,
+              interests: formData.interests,
+              languages: [],
+              awards: [],
+              achievements: [],
+              certifications: [],
+              internships: [],
+              companyRecommendations: [],
+              isAccountActive: true,
+              profileViews: 0
+            };
+
+            onLogin(user);
+          } catch (dbError) {
+            console.error('Database error:', dbError);
+            setError('Account created but failed to save profile. Please try logging in.');
+            setLoading(false);
+            setIsSignUp(false);
+          }
         }
       } else {
         // Sign in with Supabase Auth
@@ -264,9 +314,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             proExpiryDate: userProfile.pro_expiry_date ? new Date(userProfile.pro_expiry_date) : undefined,
             connections: [], // Will be loaded separately
             connectionRequests: [], // Will be loaded separately
+            followers: [],
+            following: [],
             skills: userProfile.skills,
             interests: userProfile.interests,
-            isAccountActive: userProfile.is_account_active
+            languages: [],
+            awards: [],
+            achievements: [],
+            certifications: [],
+            internships: [],
+            companyRecommendations: [],
+            isAccountActive: userProfile.is_account_active,
+            profileViews: userProfile.profile_views || 0,
+            location: userProfile.location,
+            linkedinUrl: userProfile.linkedin_url,
+            githubUrl: userProfile.github_url
           };
 
           // Check if account is still active (not graduated)
@@ -302,7 +364,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
 
             {/* Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div className="bg-white rounded-lg shadow-xl p-8 border border-gray-100">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                 {isSignUp ? 'Join Peerly - Start Your Journey' : 'Welcome Back'}
               </h2>
@@ -351,33 +413,46 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    College/University
-                  </label>
-                  <input
-                    type="text"
+                <div ref={courseInputRef}>
+                  <AutocompleteInput
+                    label="College/University"
                     value={formData.college}
-                    onChange={(e) => setFormData({...formData, college: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                    placeholder="Enter your college name"
+                    onChange={(value) => setFormData({...formData, college: value})}
+                    suggestions={[]}
+                    placeholder="Search or enter your college name"
                     required
+                    filterFunction={filterColleges}
+                    onAdd={(value) => {
+                      addCollege(value);
+                      setFormData({...formData, college: value});
+                    }}
+                    onMoveNext={() => {
+                      // Focus the course input field
+                      const courseInput = courseInputRef.current?.nextElementSibling?.querySelector('input');
+                      if (courseInput instanceof HTMLInputElement) {
+                        courseInput.focus();
+                      }
+                    }}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course/Program
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.course}
-                    onChange={(e) => setFormData({...formData, course: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                    placeholder="e.g., Computer Science, Business Administration"
-                    required
-                  />
-                </div>
+                <AutocompleteInput
+                  label="Course/Program"
+                  value={formData.course}
+                  onChange={(value) => setFormData({...formData, course: value})}
+                  suggestions={[]}
+                  placeholder="Search or enter your course (e.g., Computer Science)"
+                  required
+                  filterFunction={filterCourses}
+                  onAdd={(value) => {
+                    addCourse(value);
+                    setFormData({...formData, course: value});
+                  }}
+                  onMoveNext={() => {
+                    // Focus the course level dropdown
+                    courseLevelRef.current?.focus();
+                  }}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -385,11 +460,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       Course Level
                     </label>
                     <select
+                      ref={courseLevelRef}
                       value={formData.courseLevel}
-                      onChange={(e) => setFormData({...formData, courseLevel: e.target.value as 'undergraduate' | 'postgraduate' | 'phd'})}
+                      onChange={(e) => setFormData({...formData, courseLevel: e.target.value as 'diploma' | 'undergraduate' | 'postgraduate' | 'phd'})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
                       required
                     >
+                      <option value="diploma">Diploma</option>
                       <option value="undergraduate">Undergraduate</option>
                       <option value="postgraduate">Postgraduate</option>
                       <option value="phd">PhD</option>
@@ -490,9 +567,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
                   placeholder="Enter your password"
+                  minLength={6}
                   required
                 />
               </div>
+              {isSignUp && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Password must be at least 6 characters long
+                </p>
+              )}
             </div>
 
             <button

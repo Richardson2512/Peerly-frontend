@@ -249,7 +249,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
       {activeTab === 'certificates' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {certificates.map((certificate) => (
-            <div key={certificate.id} className="bg-white rounded-xl shadow-sm border p-6">
+            <div key={certificate.id} className="bg-white rounded-md shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
                 <Award className="h-12 w-12 text-yellow-500" />
                 <div className="text-right">
@@ -275,7 +275,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
             const canEnroll = !course.isProOnly || user.isPro;
             
             return (
-              <div key={course.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div key={course.id} className="bg-white rounded-md shadow-sm border overflow-hidden">
                 <div className="relative">
                   <img
                     src={course.thumbnail}

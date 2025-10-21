@@ -171,7 +171,7 @@ const Projects: React.FC<ProjectsProps> = ({ user }) => {
 
       {/* Pro Feature Notice */}
       {!user.isPro && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-md p-6 mb-6">
           <div className="flex items-center">
             <Crown className="h-8 w-8 text-yellow-600 mr-3" />
             <div>
@@ -246,7 +246,7 @@ const Projects: React.FC<ProjectsProps> = ({ user }) => {
           const TechIcon = getTechIcon(project.technologies[0]);
           
           return (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm border p-6">
+            <div key={project.id} className="bg-white rounded-md shadow-sm border p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center text-white">
                   <TechIcon className="h-6 w-6" />

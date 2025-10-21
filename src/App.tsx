@@ -6,6 +6,8 @@ import Dashboard from './components/Dashboard';
 import ProPage from './components/ProPage';
 import { User } from './types';
 import { supabase, db } from './lib/supabase';
+import { appConfig } from './config/app.config';
+import { PostsProvider } from './contexts/PostsContext';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -68,8 +70,15 @@ function App() {
       return;
     }
 
-    // If no localStorage data, check Supabase session
+    // If no localStorage data, check Supabase session (only if configured)
     const checkSession = async () => {
+      // Skip Supabase check if running in mock mode
+      if (appConfig.useMockMode) {
+        console.log('Running in mock mode - Supabase session check skipped');
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -111,6 +120,7 @@ function App() {
         }
       } catch (error) {
         console.error('Session check error:', error);
+        // Continue to show landing page even if session check fails
       } finally {
         setLoading(false);
       }
@@ -118,15 +128,17 @@ function App() {
 
     checkSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setUser(null);
-        localStorage.removeItem('studentUser');
-      }
-    });
+    // Listen for auth changes (only if not in mock mode)
+    if (!appConfig.useMockMode) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          setUser(null);
+          localStorage.removeItem('studentUser');
+        }
+      });
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
   const handleLogin = (userData: User) => {
@@ -140,8 +152,10 @@ function App() {
       localStorage.removeItem('studentUser');
       setUser(null);
       
-      // Then sign out from Supabase if there's a session
-      await supabase.auth.signOut();
+      // Then sign out from Supabase if there's a session and not in mock mode
+      if (!appConfig.useMockMode) {
+        await supabase.auth.signOut();
+      }
     } catch (error) {
       console.error('Logout error:', error);
       // Even if Supabase logout fails, clear local state
@@ -159,46 +173,48 @@ function App() {
   }
 
       return (
-        <Router>
-          <div className="min-h-screen">
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  user ? (
-                    <Navigate to="/dashboard" replace />
-                  ) : (
-                    <LandingPage />
-                  )
-                }
-              />
-              <Route
-                path="/login"
-                element={
-                  user ? (
-                    <Navigate to="/dashboard" replace />
-                  ) : (
-                    <Login onLogin={handleLogin} />
-                  )
-                }
-              />
-              <Route
-                path="/dashboard/*"
-                element={
-                  user ? (
-                    <Dashboard user={user} onLogout={handleLogout} />
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
-              <Route
-                path="/pro"
-                element={<ProPage />}
-              />
-            </Routes>
-          </div>
-        </Router>
+        <PostsProvider>
+          <Router>
+            <div className="min-h-screen">
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    user ? (
+                      <Navigate to="/dashboard" replace />
+                    ) : (
+                      <LandingPage />
+                    )
+                  }
+                />
+                <Route
+                  path="/login"
+                  element={
+                    user ? (
+                      <Navigate to="/dashboard" replace />
+                    ) : (
+                      <Login onLogin={handleLogin} />
+                    )
+                  }
+                />
+                <Route
+                  path="/dashboard/*"
+                  element={
+                    user ? (
+                      <Dashboard user={user} onLogout={handleLogout} />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/pro"
+                  element={<ProPage />}
+                />
+              </Routes>
+            </div>
+          </Router>
+        </PostsProvider>
       );
 }
 

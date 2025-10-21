@@ -166,7 +166,7 @@ const ProPage: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-xl hover:shadow-lg transition-shadow">
+              <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-md hover:shadow-lg transition-shadow">
                 <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-6`}>
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
@@ -186,7 +186,7 @@ const ProPage: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-xl shadow-sm">
+              <div key={index} className="bg-white p-8 rounded-md shadow-sm">
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
@@ -212,7 +212,7 @@ const ProPage: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             {/* Free Plan */}
-            <div className="bg-gray-50 p-8 rounded-xl">
+            <div className="bg-gray-50 p-8 rounded-md">
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Free</h3>
               <div className="text-4xl font-bold mb-6 text-gray-900">₹0<span className="text-lg text-gray-500">/month</span></div>
               <ul className="space-y-4 mb-8">
@@ -236,7 +236,7 @@ const ProPage: React.FC = () => {
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-gradient-to-br from-purple-500 to-emerald-500 p-8 rounded-xl text-white relative">
+            <div className="bg-gradient-to-br from-purple-500 to-emerald-500 p-8 rounded-md text-white relative">
               <div className="absolute top-4 right-4 bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-sm font-semibold">
                 Most Popular
               </div>
@@ -296,7 +296,7 @@ const ProPage: React.FC = () => {
           </h2>
           <div className="space-y-6">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
+              <div key={index} className="bg-white p-6 rounded-md shadow-sm">
                 <h3 className="text-lg font-semibold mb-3 text-gray-900">{faq.question}</h3>
                 <p className="text-gray-600">{faq.answer}</p>
               </div>

@@ -5,7 +5,7 @@ export interface User {
   college: string;
   course: string;
   courseDuration: number; // in years
-  courseLevel: 'undergraduate' | 'postgraduate' | 'phd';
+  courseLevel: 'diploma' | 'undergraduate' | 'postgraduate' | 'phd';
   year: string;
   graduationDate: Date;
   avatar?: string;
@@ -376,4 +376,71 @@ export interface SearchResult {
   position?: string;
   experience?: string;
   skills?: string[];
+}
+
+// Forum system interfaces
+export interface ForumDiscussion {
+  id: string;
+  title: string;
+  description: string;
+  ownerId: string;
+  ownerName: string;
+  ownerAvatar?: string;
+  isPrivate: boolean;
+  category: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  memberCount: number;
+  postCount: number;
+  lastActivity: Date;
+  isActive: boolean;
+}
+
+export interface ForumPost {
+  id: string;
+  discussionId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  likes: number;
+  isPinned: boolean;
+  isEdited: boolean;
+  parentPostId?: string; // For replies
+  replies: ForumPost[];
+}
+
+export interface ForumMembership {
+  id: string;
+  discussionId: string;
+  userId: string;
+  role: 'owner' | 'admin' | 'member';
+  joinedAt: Date;
+  status: 'active' | 'pending' | 'banned';
+}
+
+export interface ForumInvite {
+  id: string;
+  discussionId: string;
+  inviterId: string;
+  inviteeId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: Date;
+  expiresAt: Date;
+  message?: string;
+}
+
+export interface ForumJoinRequest {
+  id: string;
+  discussionId: string;
+  requesterId: string;
+  requesterName: string;
+  message?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Date;
+  reviewedAt?: Date;
+  reviewedBy?: string;
 }
