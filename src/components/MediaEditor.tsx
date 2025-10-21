@@ -411,9 +411,9 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
       return 'right';
     }
 
-    // Check if inside crop area (for moving)
-    if (x >= cropArea.x && x <= cropArea.x + cropArea.width &&
-        y >= cropArea.y && y <= cropArea.y + cropArea.height) {
+    // Check if inside crop area (for moving) - make it easier to grab
+    if (x >= cropArea.x + 5 && x <= cropArea.x + cropArea.width - 5 &&
+        y >= cropArea.y + 5 && y <= cropArea.y + cropArea.height - 5) {
       return 'move';
     }
 
@@ -469,13 +469,25 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
     const deltaY = y - dragStart.y;
 
     if (dragType === 'move' && resizeHandle === 'move') {
-      // Move the entire crop area
-      setCropArea(prev => ({
-        x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
-        y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height)),
-        width: prev.width,
-        height: prev.height
-      }));
+      // Move the entire crop area freely
+      setCropArea(prev => {
+        const newX = prev.x + deltaX;
+        const newY = prev.y + deltaY;
+        
+        // Allow free movement but keep crop area within canvas bounds
+        const constrainedX = Math.max(0, Math.min(newX, canvas.width - prev.width));
+        const constrainedY = Math.max(0, Math.min(newY, canvas.height - prev.height));
+        
+        return {
+          x: constrainedX,
+          y: constrainedY,
+          width: prev.width,
+          height: prev.height
+        };
+      });
+      
+      // Update drag start position for smooth movement
+      setDragStart({ x, y });
     } else if (dragType === 'resize') {
       // Resize based on handle
       if (resizeHandle === 'new') {
@@ -682,8 +694,10 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
                         canvas.style.cursor = 'move';
                       } else if (handle && handle !== 'move') {
                         canvas.style.cursor = 'nw-resize';
-                      } else {
+                      } else if (cropMode) {
                         canvas.style.cursor = 'crosshair';
+                      } else {
+                        canvas.style.cursor = 'default';
                       }
                     }
                   }
