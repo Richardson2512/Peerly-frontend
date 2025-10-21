@@ -26,6 +26,7 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragType, setDragType] = useState<'move' | 'resize' | 'corner' | 'edge' | null>(null);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [showCropPreview, setShowCropPreview] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,82 +116,123 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
     const img = imgRef.current;
     if (!img) return;
 
-    // First, draw the full image
-    ctx.save();
-    ctx.translate(canvasWidth / 2, canvasHeight / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-    ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
-    ctx.restore();
+    if (showCropPreview) {
+      // Show only the cropped area zoomed to fill the canvas
+      const scaleX = canvasWidth / cropArea.width;
+      const scaleY = canvasHeight / cropArea.height;
+      const scale = Math.min(scaleX, scaleY);
+      
+      const scaledWidth = cropArea.width * scale;
+      const scaledHeight = cropArea.height * scale;
+      const offsetX = (canvasWidth - scaledWidth) / 2;
+      const offsetY = (canvasHeight - scaledHeight) / 2;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Draw the cropped portion of the image
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+      
+      // Calculate source coordinates in original image
+      const sourceX = (cropArea.x / canvasWidth) * img.naturalWidth;
+      const sourceY = (cropArea.y / canvasHeight) * img.naturalHeight;
+      const sourceWidth = (cropArea.width / canvasWidth) * img.naturalWidth;
+      const sourceHeight = (cropArea.height / canvasHeight) * img.naturalHeight;
+      
+      ctx.drawImage(
+        img,
+        sourceX, sourceY, sourceWidth, sourceHeight,
+        -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight
+      );
+      ctx.restore();
+      
+      // Draw a subtle border to show this is the preview
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(offsetX, offsetY, scaledWidth, scaledHeight);
+      
+    } else {
+      // Normal crop overlay mode
+      // First, draw the full image
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+      ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
+      ctx.restore();
 
-    // Draw dark overlay over the entire image
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Draw dark overlay over the entire image
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Clear the crop area to show the bright image
-    ctx.clearRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+      // Clear the crop area to show the bright image
+      ctx.clearRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
 
-    // Redraw the image only in the crop area (bright and clear)
-    ctx.save();
-    ctx.translate(canvasWidth / 2, canvasHeight / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-    ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
-    ctx.restore();
+      // Redraw the image only in the crop area (bright and clear)
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+      ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
+      ctx.restore();
 
-    // Draw crop border with thicker line
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+      // Draw crop border with thicker line
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
 
-    // Draw corner handles (larger and more visible)
-    const handleSize = 12;
-    ctx.fillStyle = '#3b82f6';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    
-    // Top-left corner
-    ctx.fillRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    
-    // Top-right corner
-    ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    
-    // Bottom-left corner
-    ctx.fillRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
-    ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
-    
-    // Bottom-right corner
-    ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
-    ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+      // Draw corner handles (larger and more visible)
+      const handleSize = 12;
+      ctx.fillStyle = '#3b82f6';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      
+      // Top-left corner
+      ctx.fillRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+      ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+      
+      // Top-right corner
+      ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+      ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+      
+      // Bottom-left corner
+      ctx.fillRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+      ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+      
+      // Bottom-right corner
+      ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+      ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
 
-    // Draw side handles for resizing
-    const sideHandleSize = 8;
-    const sideHandleLength = 20;
-    
-    // Top side
-    ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
-    ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
-    
-    // Bottom side
-    ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
-    ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
-    
-    // Left side
-    ctx.fillRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
-    ctx.strokeRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
-    
-    // Right side
-    ctx.fillRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
-    ctx.strokeRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+      // Draw side handles for resizing
+      const sideHandleSize = 8;
+      const sideHandleLength = 20;
+      
+      // Top side
+      ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
+      ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
+      
+      // Bottom side
+      ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
+      ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
+      
+      // Left side
+      ctx.fillRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+      ctx.strokeRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+      
+      // Right side
+      ctx.fillRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+      ctx.strokeRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+    }
   };
 
   useEffect(() => {
     if (imageLoaded) {
       applyTransforms();
     }
-  }, [rotation, flipH, flipV, imageLoaded, cropMode, cropArea]);
+  }, [rotation, flipH, flipV, imageLoaded, cropMode, cropArea, showCropPreview]);
 
   // Initialize crop area when entering crop mode
   useEffect(() => {
@@ -306,9 +348,16 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
 
   const handleCropToggle = () => {
     setCropMode(!cropMode);
+    setShowCropPreview(false);
     if (cropMode) {
       // Reset crop area when exiting crop mode
       setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+    }
+  };
+
+  const handlePreviewCrop = () => {
+    if (cropArea.width > 0 && cropArea.height > 0) {
+      setShowCropPreview(!showCropPreview);
     }
   };
 
@@ -380,6 +429,14 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check if click is outside the canvas (discard crop)
+    if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
+      setCropMode(false);
+      setShowCropPreview(false);
+      setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+      return;
+    }
 
     const handle = getHandleAtPoint(x, y);
     
@@ -516,6 +573,7 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
               {flipH && ' • Flipped H'}
               {flipV && ' • Flipped V'}
               {cropMode && ' • Crop Mode Active'}
+              {showCropPreview && ' • Preview Mode'}
             </div>
           </div>
           <div className="flex items-center justify-center space-x-2">
@@ -565,6 +623,17 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
                 Auto-Crop ({autoCropSuggestion.aspectRatio})
               </button>
             )}
+            {cropMode && cropArea.width > 0 && cropArea.height > 0 && (
+              <button
+                onClick={handlePreviewCrop}
+                className={`flex items-center px-4 py-2 border rounded-lg transition-colors ${
+                  showCropPreview ? 'bg-blue-100 border-blue-500 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                <Crop className="h-5 w-5 mr-2" />
+                {showCropPreview ? 'Edit Crop' : 'Preview Crop'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -572,6 +641,14 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel, a
         <div 
           ref={containerRef}
           className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center p-8"
+          onClick={(e) => {
+            // If clicking outside the canvas, discard crop
+            if (cropMode && e.target === containerRef.current) {
+              setCropMode(false);
+              setShowCropPreview(false);
+              setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+            }
+          }}
         >
           <div className="relative max-w-full max-h-full">
             <img
