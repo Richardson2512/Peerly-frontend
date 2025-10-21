@@ -17,6 +17,8 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragType, setDragType] = useState<'move' | 'resize' | 'corner' | 'edge' | null>(null);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -103,36 +105,78 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
   };
 
   const drawCropOverlay = (ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) => {
-    // Draw dark overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    const img = imgRef.current;
+    if (!img) return;
+
+    // First, draw the full image
+    ctx.save();
+    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+    ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
+    ctx.restore();
+
+    // Draw dark overlay over the entire image
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Clear the crop area
+    // Clear the crop area to show the bright image
     ctx.clearRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
 
-    // Redraw the image in the crop area
-    const img = imgRef.current;
-    if (img) {
-      ctx.save();
-      ctx.translate(canvasWidth / 2, canvasHeight / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-      ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
-      ctx.restore();
-    }
+    // Redraw the image only in the crop area (bright and clear)
+    ctx.save();
+    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+    ctx.drawImage(img, -canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
+    ctx.restore();
 
-    // Draw crop border
+    // Draw crop border with thicker line
     ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
 
-    // Draw corner handles
-    const handleSize = 8;
+    // Draw corner handles (larger and more visible)
+    const handleSize = 12;
     ctx.fillStyle = '#3b82f6';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    
+    // Top-left corner
     ctx.fillRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+    ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+    
+    // Top-right corner
     ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+    ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
+    
+    // Bottom-left corner
     ctx.fillRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+    ctx.strokeRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+    
+    // Bottom-right corner
     ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+    ctx.strokeRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+
+    // Draw side handles for resizing
+    const sideHandleSize = 8;
+    const sideHandleLength = 20;
+    
+    // Top side
+    ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
+    ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y - sideHandleSize/2, sideHandleLength, sideHandleSize);
+    
+    // Bottom side
+    ctx.fillRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
+    ctx.strokeRect(cropArea.x + cropArea.width/2 - sideHandleLength/2, cropArea.y + cropArea.height - sideHandleSize/2, sideHandleLength, sideHandleSize);
+    
+    // Left side
+    ctx.fillRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+    ctx.strokeRect(cropArea.x - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+    
+    // Right side
+    ctx.fillRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
+    ctx.strokeRect(cropArea.x + cropArea.width - sideHandleSize/2, cropArea.y + cropArea.height/2 - sideHandleLength/2, sideHandleSize, sideHandleLength);
   };
 
   useEffect(() => {
@@ -183,9 +227,9 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
         cropHeight = cropArea.height * scaleY;
       }
 
-      // Set canvas size to crop dimensions
-      tempCanvas.width = cropWidth;
-      tempCanvas.height = cropHeight;
+      // Set canvas size to crop dimensions (ensure minimum size)
+      tempCanvas.width = Math.max(cropWidth, 1);
+      tempCanvas.height = Math.max(cropHeight, 1);
 
       tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
       tempCtx.save();
@@ -246,6 +290,65 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
     }
   };
 
+  const getHandleAtPoint = (x: number, y: number): string | null => {
+    const handleSize = 12;
+    const sideHandleSize = 8;
+    const sideHandleLength = 20;
+    const tolerance = 5;
+
+    // Check corner handles
+    if (Math.abs(x - cropArea.x) <= handleSize/2 + tolerance && 
+        Math.abs(y - cropArea.y) <= handleSize/2 + tolerance) {
+      return 'top-left';
+    }
+    if (Math.abs(x - (cropArea.x + cropArea.width)) <= handleSize/2 + tolerance && 
+        Math.abs(y - cropArea.y) <= handleSize/2 + tolerance) {
+      return 'top-right';
+    }
+    if (Math.abs(x - cropArea.x) <= handleSize/2 + tolerance && 
+        Math.abs(y - (cropArea.y + cropArea.height)) <= handleSize/2 + tolerance) {
+      return 'bottom-left';
+    }
+    if (Math.abs(x - (cropArea.x + cropArea.width)) <= handleSize/2 + tolerance && 
+        Math.abs(y - (cropArea.y + cropArea.height)) <= handleSize/2 + tolerance) {
+      return 'bottom-right';
+    }
+
+    // Check side handles
+    if (x >= cropArea.x + cropArea.width/2 - sideHandleLength/2 - tolerance &&
+        x <= cropArea.x + cropArea.width/2 + sideHandleLength/2 + tolerance &&
+        y >= cropArea.y - sideHandleSize/2 - tolerance &&
+        y <= cropArea.y + sideHandleSize/2 + tolerance) {
+      return 'top';
+    }
+    if (x >= cropArea.x + cropArea.width/2 - sideHandleLength/2 - tolerance &&
+        x <= cropArea.x + cropArea.width/2 + sideHandleLength/2 + tolerance &&
+        y >= cropArea.y + cropArea.height - sideHandleSize/2 - tolerance &&
+        y <= cropArea.y + cropArea.height + sideHandleSize/2 + tolerance) {
+      return 'bottom';
+    }
+    if (x >= cropArea.x - sideHandleSize/2 - tolerance &&
+        x <= cropArea.x + sideHandleSize/2 + tolerance &&
+        y >= cropArea.y + cropArea.height/2 - sideHandleLength/2 - tolerance &&
+        y <= cropArea.y + cropArea.height/2 + sideHandleLength/2 + tolerance) {
+      return 'left';
+    }
+    if (x >= cropArea.x + cropArea.width - sideHandleSize/2 - tolerance &&
+        x <= cropArea.x + cropArea.width + sideHandleSize/2 + tolerance &&
+        y >= cropArea.y + cropArea.height/2 - sideHandleLength/2 - tolerance &&
+        y <= cropArea.y + cropArea.height/2 + sideHandleLength/2 + tolerance) {
+      return 'right';
+    }
+
+    // Check if inside crop area (for moving)
+    if (x >= cropArea.x && x <= cropArea.x + cropArea.width &&
+        y >= cropArea.y && y <= cropArea.y + cropArea.height) {
+      return 'move';
+    }
+
+    return null;
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!cropMode) return;
     
@@ -256,9 +359,21 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setIsDragging(true);
-    setDragStart({ x, y });
-    setCropArea({ x, y, width: 0, height: 0 });
+    const handle = getHandleAtPoint(x, y);
+    
+    if (handle) {
+      setIsDragging(true);
+      setDragStart({ x, y });
+      setDragType(handle === 'move' ? 'move' : 'resize');
+      setResizeHandle(handle);
+    } else {
+      // Start new crop selection
+      setIsDragging(true);
+      setDragStart({ x, y });
+      setDragType('resize');
+      setResizeHandle('new');
+      setCropArea({ x, y, width: 0, height: 0 });
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -271,19 +386,83 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const width = x - dragStart.x;
-    const height = y - dragStart.y;
+    const deltaX = x - dragStart.x;
+    const deltaY = y - dragStart.y;
 
-    setCropArea({
-      x: Math.min(dragStart.x, x),
-      y: Math.min(dragStart.y, y),
-      width: Math.abs(width),
-      height: Math.abs(height)
-    });
+    if (dragType === 'move' && resizeHandle === 'move') {
+      // Move the entire crop area
+      setCropArea(prev => ({
+        x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
+        y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height)),
+        width: prev.width,
+        height: prev.height
+      }));
+    } else if (dragType === 'resize') {
+      // Resize based on handle
+      if (resizeHandle === 'new') {
+        // Create new crop area
+        setCropArea({
+          x: Math.min(dragStart.x, x),
+          y: Math.min(dragStart.y, y),
+          width: Math.abs(deltaX),
+          height: Math.abs(deltaY)
+        });
+      } else {
+        // Resize existing crop area
+        let newCropArea = { ...cropArea };
+        
+        switch (resizeHandle) {
+          case 'top-left':
+            newCropArea.x = Math.min(x, cropArea.x + cropArea.width - 20);
+            newCropArea.y = Math.min(y, cropArea.y + cropArea.height - 20);
+            newCropArea.width = cropArea.width + (cropArea.x - newCropArea.x);
+            newCropArea.height = cropArea.height + (cropArea.y - newCropArea.y);
+            break;
+          case 'top-right':
+            newCropArea.y = Math.min(y, cropArea.y + cropArea.height - 20);
+            newCropArea.width = Math.max(20, x - cropArea.x);
+            newCropArea.height = cropArea.height + (cropArea.y - newCropArea.y);
+            break;
+          case 'bottom-left':
+            newCropArea.x = Math.min(x, cropArea.x + cropArea.width - 20);
+            newCropArea.width = cropArea.width + (cropArea.x - newCropArea.x);
+            newCropArea.height = Math.max(20, y - cropArea.y);
+            break;
+          case 'bottom-right':
+            newCropArea.width = Math.max(20, x - cropArea.x);
+            newCropArea.height = Math.max(20, y - cropArea.y);
+            break;
+          case 'top':
+            newCropArea.y = Math.min(y, cropArea.y + cropArea.height - 20);
+            newCropArea.height = cropArea.height + (cropArea.y - newCropArea.y);
+            break;
+          case 'bottom':
+            newCropArea.height = Math.max(20, y - cropArea.y);
+            break;
+          case 'left':
+            newCropArea.x = Math.min(x, cropArea.x + cropArea.width - 20);
+            newCropArea.width = cropArea.width + (cropArea.x - newCropArea.x);
+            break;
+          case 'right':
+            newCropArea.width = Math.max(20, x - cropArea.x);
+            break;
+        }
+        
+        // Ensure crop area stays within canvas bounds
+        newCropArea.x = Math.max(0, Math.min(newCropArea.x, canvas.width - newCropArea.width));
+        newCropArea.y = Math.max(0, Math.min(newCropArea.y, canvas.height - newCropArea.height));
+        newCropArea.width = Math.min(newCropArea.width, canvas.width - newCropArea.x);
+        newCropArea.height = Math.min(newCropArea.height, canvas.height - newCropArea.y);
+        
+        setCropArea(newCropArea);
+      }
+    }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setDragType(null);
+    setResizeHandle(null);
   };
 
   return (
@@ -370,14 +549,35 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ imageUrl, onSave, onCancel })
             {imageLoaded ? (
               <canvas
                 ref={canvasRef}
-                className="max-w-full max-h-full object-contain border border-gray-600 rounded-lg cursor-crosshair"
+                className="max-w-full max-h-full object-contain border border-gray-600 rounded-lg"
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '100%',
-                  objectFit: 'contain'
+                  objectFit: 'contain',
+                  cursor: cropMode ? 'crosshair' : 'default'
                 }}
                 onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
+                onMouseMove={(e) => {
+                  if (cropMode && !isDragging) {
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                      const rect = canvas.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      const handle = getHandleAtPoint(x, y);
+                      
+                      // Set cursor based on handle type
+                      if (handle === 'move') {
+                        canvas.style.cursor = 'move';
+                      } else if (handle && handle !== 'move') {
+                        canvas.style.cursor = 'nw-resize';
+                      } else {
+                        canvas.style.cursor = 'crosshair';
+                      }
+                    }
+                  }
+                  handleMouseMove(e);
+                }}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
               />
