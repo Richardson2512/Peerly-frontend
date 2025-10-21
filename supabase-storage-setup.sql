@@ -16,6 +16,12 @@ ON CONFLICT (id) DO NOTHING;
 -- AVATARS BUCKET POLICIES
 -- ============================================
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can upload their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view avatars" ON storage.objects;
+
 -- Allow users to upload their own avatar
 CREATE POLICY "Users can upload their own avatar"
 ON storage.objects FOR INSERT
@@ -52,6 +58,12 @@ USING (bucket_id = 'avatars');
 -- ============================================
 -- POSTS BUCKET POLICIES
 -- ============================================
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can upload their own post media" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own post media" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own post media" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view post media" ON storage.objects;
 
 -- Allow users to upload their own post media
 CREATE POLICY "Users can upload their own post media"
