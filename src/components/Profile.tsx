@@ -267,27 +267,27 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     <div className="w-full max-w-none p-6">
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-        {/* Cover Photo */}
+        {/* Cover Photo with Profile Avatar */}
         <div className="h-48 bg-gradient-to-r from-purple-600 to-emerald-600 relative">
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          
+          {/* Profile Avatar positioned at bottom edge of cover */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-10">
+            <button 
+              onClick={() => setShowAvatarModal(true)}
+              className="w-32 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+            >
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <span className="text-white text-3xl font-bold">{getInitials(user.name)}</span>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Profile Avatar positioned at bottom edge of cover */}
-        <div className="flex justify-center -mt-16 relative z-10">
-          <button 
-            onClick={() => setShowAvatarModal(true)}
-            className="w-32 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-          >
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <span className="text-white text-3xl font-bold">{getInitials(user.name)}</span>
-            )}
-          </button>
-        </div>
-
-        {/* Student Info Section - Below Cover Photo */}
-        <div className="px-6 pb-4">
+        {/* Student Info Section - Immediately below Cover Photo */}
+        <div className="px-6 pb-4 pt-8">
           <div className="flex items-start justify-between mb-4">
             {/* Left Side - Student Info */}
             <div className="flex-1">
