@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, NotificationSettings, PrivacySettings } from '../types';
+import { db } from '../lib/supabase';
 import { 
   Settings as SettingsIcon,
   User as UserIcon,
@@ -13,7 +14,8 @@ import {
   EyeOff,
   Save,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  GraduationCap
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -25,6 +27,10 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
   const [accountData, setAccountData] = useState({
     name: user.name,
     email: user.email,
+    college: user.college,
+    course: user.course,
+    courseLevel: user.courseLevel,
+    year: user.year,
     phone: user.phone || '',
     location: user.location || '',
     bio: user.bio || '',
@@ -69,11 +75,41 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update user profile in database
+      await db.updateUser(user.id, {
+        name: accountData.name,
+        college: accountData.college,
+        course: accountData.course,
+        course_level: accountData.courseLevel,
+        year: accountData.year,
+        location: accountData.location,
+        bio: accountData.bio,
+        linkedin_url: accountData.linkedinUrl,
+        github_url: accountData.githubUrl
+      });
+
+      // Update localStorage
+      const updatedUser = {
+        ...user,
+        name: accountData.name,
+        college: accountData.college,
+        course: accountData.course,
+        courseLevel: accountData.courseLevel,
+        year: accountData.year,
+        location: accountData.location,
+        bio: accountData.bio,
+        linkedinUrl: accountData.linkedinUrl,
+        githubUrl: accountData.githubUrl
+      };
+      localStorage.setItem('studentUser', JSON.stringify(updatedUser));
+
       setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      setTimeout(() => {
+        setSaveStatus('idle');
+        alert('Profile updated successfully! Please refresh the page to see changes.');
+      }, 2000);
     } catch (error) {
+      console.error('Error saving profile:', error);
       setSaveStatus('error');
     }
   };
@@ -206,6 +242,71 @@ const Settings: React.FC<SettingsProps> = ({ user }) => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="City, State"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic Information */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <GraduationCap className="h-5 w-5 mr-2 text-purple-600" />
+                  Academic Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      College/University
+                    </label>
+                    <input
+                      type="text"
+                      value={accountData.college}
+                      onChange={(e) => setAccountData({...accountData, college: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      placeholder="Your college name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course/Major
+                    </label>
+                    <input
+                      type="text"
+                      value={accountData.course}
+                      onChange={(e) => setAccountData({...accountData, course: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      placeholder="Your course name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course Level
+                    </label>
+                    <select
+                      value={accountData.courseLevel}
+                      onChange={(e) => setAccountData({...accountData, courseLevel: e.target.value as any})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="diploma">Diploma</option>
+                      <option value="undergraduate">Undergraduate</option>
+                      <option value="postgraduate">Postgraduate</option>
+                      <option value="phd">PhD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Year
+                    </label>
+                    <select
+                      value={accountData.year}
+                      onChange={(e) => setAccountData({...accountData, year: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                      <option value="5">5th Year</option>
+                    </select>
                   </div>
                 </div>
               </div>
