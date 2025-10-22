@@ -141,7 +141,7 @@ CREATE TABLE public.pro_subscriptions (
 );
 
 -- Conversations table
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   participant_one_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   participant_two_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -154,7 +154,7 @@ CREATE TABLE public.conversations (
 );
 
 -- Messages table
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -168,7 +168,7 @@ CREATE TABLE public.messages (
 );
 
 -- Notifications table
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK (type IN ('connection_request', 'connection_accepted', 'message', 'post_like', 'comment', 'mention', 'system')),
@@ -180,6 +180,20 @@ CREATE TABLE public.notifications (
   related_entity_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add new columns to notifications table if they don't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'notifications' AND column_name = 'related_user_id') THEN
+    ALTER TABLE public.notifications ADD COLUMN related_user_id UUID REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'notifications' AND column_name = 'related_entity_id') THEN
+    ALTER TABLE public.notifications ADD COLUMN related_entity_id UUID;
+  END IF;
+END $$;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON public.posts(user_id);
