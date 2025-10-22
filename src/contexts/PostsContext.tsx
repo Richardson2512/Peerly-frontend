@@ -65,8 +65,20 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         shares_count: 0
       });
       
-      // Add to local state
-      const newPost = convertSupabasePost(supabasePost);
+      // Create new post with Supabase ID and timestamps, but preserve user info from original post
+      const newPost: Post = {
+        id: supabasePost.id,
+        userId: supabasePost.user_id,
+        userName: post.userName, // Use original post's userName
+        userAvatar: post.userAvatar, // Use original post's userAvatar
+        content: supabasePost.content,
+        image: supabasePost.image_url,
+        video: supabasePost.video_url,
+        timestamp: new Date(supabasePost.created_at),
+        likes: supabasePost.likes || 0,
+        comments: []
+      };
+      
       setPosts(prevPosts => [newPost, ...prevPosts]);
     } catch (error) {
       console.error('Error creating post:', error);
