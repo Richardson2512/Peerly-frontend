@@ -35,6 +35,7 @@ CREATE TABLE public.users (
   year TEXT NOT NULL,
   graduation_date DATE NOT NULL,
   avatar_url TEXT,
+  cover_photo_url TEXT,
   bio TEXT,
   is_pro BOOLEAN DEFAULT FALSE,
   pro_expiry_date DATE,

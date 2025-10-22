@@ -99,6 +99,7 @@ function App() {
             year: userProfile.year,
             graduationDate: new Date(userProfile.graduation_date),
             avatar: userProfile.avatar_url,
+            coverPhoto: userProfile.cover_photo_url,
             bio: userProfile.bio,
             isPro: userProfile.is_pro,
             proExpiryDate: userProfile.pro_expiry_date ? new Date(userProfile.pro_expiry_date) : undefined,

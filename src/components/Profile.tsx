@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { User, Post, Event } from '../types';
-import { uploadPostMedia } from '../lib/storage';
+import { uploadPostMedia, uploadAvatar, uploadCoverPhoto } from '../lib/storage';
 import { usePosts } from '../contexts/PostsContext';
 import { db } from '../lib/supabase';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -71,6 +71,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   });
   const [userBadges, setUserBadges] = useState<any[]>([]);
   const [loadingBadges, setLoadingBadges] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context - memoized to update when posts change
@@ -344,6 +346,60 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     setShowAddBadgeModal(false);
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    if (!user.id) {
+      alert('User not found. Please log in again.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      // Upload avatar to storage
+      const avatarUrl = await uploadAvatar(user.id, file);
+      
+      // Update user profile in database
+      await db.updateUserAvatar(user.id, avatarUrl);
+      
+      // Update local user object (you might want to use a context or state management for this)
+      // For now, we'll show a success message
+      alert('Profile picture updated successfully! Please refresh the page to see changes.');
+      
+      setShowAvatarModal(false);
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Failed to upload profile picture. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    if (!user.id) {
+      alert('User not found. Please log in again.');
+      return;
+    }
+
+    setUploadingCover(true);
+    try {
+      // Upload cover photo to storage
+      const coverUrl = await uploadCoverPhoto(user.id, file);
+      
+      // Update user profile in database
+      await db.updateUserCoverPhoto(user.id, coverUrl);
+      
+      // Update local user object (you might want to use a context or state management for this)
+      // For now, we'll show a success message
+      alert('Cover photo updated successfully! Please refresh the page to see changes.');
+      
+      setShowCoverModal(false);
+    } catch (error) {
+      console.error('Error uploading cover photo:', error);
+      alert('Failed to upload cover photo. Please try again.');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   const renderProficiencyBadge = (proficiency: string) => {
     const colors = {
       native: 'bg-green-100 text-green-800',
@@ -380,7 +436,16 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
         {/* Cover Photo with Profile Avatar */}
-        <div className="h-48 bg-gradient-to-r from-purple-600 to-emerald-600 relative">
+        <div className="h-48 relative">
+          {user.coverPhoto ? (
+            <img 
+              src={user.coverPhoto} 
+              alt="Cover photo" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="h-full bg-gradient-to-r from-purple-600 to-emerald-600"></div>
+          )}
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
           
           {/* Profile Avatar positioned at bottom edge of cover */}
@@ -1107,28 +1172,43 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               <p className="text-gray-600">Current profile photo</p>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  // TODO: Implement avatar upload
-                  alert('Avatar upload functionality coming soon!');
-                  setShowAvatarModal(false);
-                }}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Upload New Photo
-              </button>
-              <button
-                onClick={() => {
-                  // TODO: Implement avatar removal
-                  alert('Remove photo functionality coming soon!');
-                  setShowAvatarModal(false);
-                }}
-                className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Remove Photo
-              </button>
-            </div>
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleAvatarUpload(file);
+                    }
+                  }}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer flex items-center justify-center"
+                >
+                  {uploadingAvatar ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload New Photo'
+                  )}
+                </label>
+                <button
+                  onClick={() => {
+                    // TODO: Implement avatar removal
+                    alert('Remove photo functionality coming soon!');
+                    setShowAvatarModal(false);
+                  }}
+                  className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Remove Photo
+                </button>
+              </div>
           </div>
         </div>
       )}
@@ -1154,28 +1234,43 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               <p className="text-gray-600">Current cover photo</p>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  // TODO: Implement cover upload
-                  alert('Cover photo upload functionality coming soon!');
-                  setShowCoverModal(false);
-                }}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Upload New Cover
-              </button>
-              <button
-                onClick={() => {
-                  // TODO: Implement cover removal
-                  alert('Remove cover functionality coming soon!');
-                  setShowCoverModal(false);
-                }}
-                className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Remove Cover
-              </button>
-            </div>
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleCoverUpload(file);
+                    }
+                  }}
+                  className="hidden"
+                  id="cover-upload"
+                />
+                <label
+                  htmlFor="cover-upload"
+                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer flex items-center justify-center"
+                >
+                  {uploadingCover ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload New Cover'
+                  )}
+                </label>
+                <button
+                  onClick={() => {
+                    // TODO: Implement cover removal
+                    alert('Remove cover functionality coming soon!');
+                    setShowCoverModal(false);
+                  }}
+                  className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Remove Cover
+                </button>
+              </div>
           </div>
         </div>
       )}

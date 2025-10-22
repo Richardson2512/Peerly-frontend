@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 // Storage bucket names
 export const BUCKETS = {
   AVATARS: 'avatars',
+  COVERS: 'covers',
   POSTS: 'posts',
 } as const;
 
@@ -62,6 +63,16 @@ export const uploadFile = async (
  */
 export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
   return uploadFile(BUCKETS.AVATARS, userId, file, 'avatar.jpg');
+};
+
+/**
+ * Upload cover photo
+ * @param userId - The user's ID
+ * @param file - The cover photo file
+ * @returns The public URL of the uploaded cover photo
+ */
+export const uploadCoverPhoto = async (userId: string, file: File): Promise<string> => {
+  return uploadFile(BUCKETS.COVERS, userId, file, 'cover.jpg');
 };
 
 /**

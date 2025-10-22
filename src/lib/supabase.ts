@@ -23,6 +23,7 @@ export interface Database {
           year: string;
           graduation_date: string;
           avatar_url?: string;
+          cover_photo_url?: string;
           bio?: string;
           is_pro: boolean;
           pro_expiry_date?: string;
@@ -43,6 +44,7 @@ export interface Database {
           year: string;
           graduation_date: string;
           avatar_url?: string;
+          cover_photo_url?: string;
           bio?: string;
           is_pro?: boolean;
           pro_expiry_date?: string;
@@ -63,6 +65,7 @@ export interface Database {
           year?: string;
           graduation_date?: string;
           avatar_url?: string;
+          cover_photo_url?: string;
           bio?: string;
           is_pro?: boolean;
           pro_expiry_date?: string;
@@ -618,5 +621,30 @@ export const db = {
       .eq('id', badgeId);
     
     if (error) throw error;
+  },
+
+  // User profile image operations
+  async updateUserAvatar(userId: string, avatarUrl: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateUserCoverPhoto(userId: string, coverUrl: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ cover_photo_url: coverUrl })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 };

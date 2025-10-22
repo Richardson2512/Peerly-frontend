@@ -9,6 +9,7 @@ export interface User {
   year: string;
   graduationDate: Date;
   avatar?: string;
+  coverPhoto?: string;
   bio?: string;
   isPro: boolean;
   proExpiryDate?: Date;
