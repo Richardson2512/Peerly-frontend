@@ -159,7 +159,7 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
 
     try {
       await addPost(post);
-      setNewPost('');
+    setNewPost('');
       setPostImage(null);
       setImageFile(null);
     } catch (error) {
@@ -207,6 +207,67 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
     }
   };
 
+  // Post action functions
+  const canEditPost = (post: Post) => {
+    const now = new Date();
+    const postTime = new Date(post.timestamp);
+    const hoursDiff = (now.getTime() - postTime.getTime()) / (1000 * 60 * 60);
+    return post.userId === user.id && hoursDiff <= 24;
+  };
+
+  const handleEditPost = (post: Post) => {
+    setEditingPostId(post.id);
+    setEditContent(post.content);
+    setOpenDropdown(null);
+  };
+
+  const handleSaveEdit = async (postId: string) => {
+    if (!editContent.trim()) return;
+    
+    try {
+      await updatePost(postId, editContent);
+      setEditingPostId(null);
+      setEditContent('');
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPostId(null);
+    setEditContent('');
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await deletePostFromContext(postId);
+        setOpenDropdown(null);
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
+      }
+    }
+  };
+
+  const handleFeaturePost = (postId: string) => {
+    setFeaturedPostId(featuredPostId === postId ? null : postId);
+    setOpenDropdown(null);
+  };
+
+  const handleCopyLink = (postId: string) => {
+    const postLink = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(postLink);
+    alert('Post link copied to clipboard!');
+    setOpenDropdown(null);
+  };
+
+  const handleReportPost = (postId: string) => {
+    handleFlagPost(postId);
+    setOpenDropdown(null);
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -249,7 +310,7 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
                   };
                   try {
                     await addPost(post);
-                    setNewPost('');
+                  setNewPost('');
                     setShowContentWarning(false);
                   } catch (error) {
                     console.error('Error creating post:', error);
@@ -318,7 +379,7 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
       {/* Posts */}
       <div className="space-y-6">
         {posts.map((post) => (
-          <div key={post.id} className="bg-white rounded-xl shadow-sm border">
+          <div key={post.id} className={`bg-white rounded-xl shadow-sm border ${post.id === featuredPostId ? 'ring-2 ring-purple-500' : ''}`}>
             {/* Post Header */}
             <div className="p-6 pb-4">
               <div className="flex items-center justify-between">
@@ -327,35 +388,114 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
                     {getInitials(post.userName)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{post.userName}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{post.userName}</h3>
+                      {post.id === featuredPostId && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <Pin className="h-3 w-3 mr-1" />
+                          Featured
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {formatDistanceToNow(post.timestamp, { addSuffix: true })}
                     </p>
                   </div>
                 </div>
                 <div className="relative">
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button 
+                    onClick={() => setOpenDropdown(openDropdown === post.id ? null : post.id)}
+                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
-                  {/* Flag dropdown */}
-                  <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border z-10 opacity-0 hover:opacity-100 transition-opacity">
-                    <div className="py-1">
+                  
+                  {/* Action Dropdown Menu */}
+                  {openDropdown === post.id && (
+                    <div className="absolute right-0 top-8 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                      {post.userId === user.id && (
+                        <>
+                          {canEditPost(post) && (
+                            <button
+                              onClick={() => handleEditPost(post)}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                            >
+                              <Edit className="h-4 w-4 mr-3 text-blue-500" />
+                              Edit Post
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4 mr-3 text-red-500" />
+                            Delete Post
+                          </button>
+                          <button
+                            onClick={() => handleFeaturePost(post.id)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                          >
+                            <Pin className={`h-4 w-4 mr-3 ${post.id === featuredPostId ? 'text-purple-500' : 'text-gray-500'}`} />
+                            {post.id === featuredPostId ? 'Unfeature Post' : 'Feature on Profile'}
+                          </button>
+                          <div className="border-t border-gray-200 my-1"></div>
+                        </>
+                      )}
                       <button
-                        onClick={() => handleFlagPost(post.id)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        onClick={() => handleCopyLink(post.id)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
                       >
-                        <Flag className="h-4 w-4 mr-2 text-red-500" />
+                        <LinkIcon className="h-4 w-4 mr-3 text-gray-500" />
+                        Copy Link
+                      </button>
+                      {post.userId !== user.id && (
+                        <>
+                          <div className="border-t border-gray-200 my-1"></div>
+                      <button
+                            onClick={() => handleReportPost(post.id)}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
+                      >
+                            <Flag className="h-4 w-4 mr-3" />
                         Report Post
                       </button>
+                        </>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Post Content */}
             <div className="px-6 pb-4">
+              {editingPostId === post.id ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={3}
+                    placeholder="Edit your post..."
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleSaveEdit(post.id)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <p className="text-gray-800 leading-relaxed">{post.content}</p>
+              )}
             </div>
 
             {/* Post Image */}
