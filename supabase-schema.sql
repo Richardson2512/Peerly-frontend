@@ -32,7 +32,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- DROP TABLE IF EXISTS public.users CASCADE;
 
 -- Users table (main profile data)
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE public.users (
 );
 
 -- Posts table
-CREATE TABLE public.posts (
+CREATE TABLE IF NOT EXISTS public.posts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE public.posts (
 );
 
 -- Badges table
-CREATE TABLE public.badges (
+CREATE TABLE IF NOT EXISTS public.badges (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE public.badges (
 );
 
 -- Connections table (peer connections)
-CREATE TABLE public.connections (
+CREATE TABLE IF NOT EXISTS public.connections (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   connected_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -98,7 +98,7 @@ CREATE TABLE public.connections (
 );
 
 -- Internships table
-CREATE TABLE public.internships (
+CREATE TABLE IF NOT EXISTS public.internships (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   company TEXT NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE public.internships (
 );
 
 -- Courses table
-CREATE TABLE public.courses (
+CREATE TABLE IF NOT EXISTS public.courses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   description TEXT NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE public.courses (
 );
 
 -- Pro subscriptions table
-CREATE TABLE public.pro_subscriptions (
+CREATE TABLE IF NOT EXISTS public.pro_subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   start_date DATE NOT NULL,
