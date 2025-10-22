@@ -474,10 +474,24 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="h-full bg-gradient-to-r from-purple-600 to-emerald-600"></div>
           )}
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            </div>
-            
-        {/* Student Info Section with Profile Avatar in the middle */}
-        <div className="px-6 pb-4 pt-4">
+        </div>
+        
+        {/* Profile Avatar positioned on cover photo */}
+        <div className="flex justify-center -mt-16 relative z-10">
+          <button 
+            onClick={() => setShowAvatarModal(true)}
+            className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer shadow-lg"
+          >
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
+            )}
+          </button>
+        </div>
+
+        {/* Student Info Section */}
+        <div className="px-6 pb-4 pt-8">
           <div className="flex items-start justify-between mb-4">
             {/* Left Side - Student Info */}
             <div className="flex-1">
@@ -520,20 +534,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   {user.followers.length} followers
                 </div>
               </div>
-            </div>
-
-            {/* Middle - Profile Avatar */}
-            <div className="flex justify-center mx-12">
-              <button 
-                onClick={() => setShowAvatarModal(true)}
-                className="w-40 h-40 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
-              >
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-lg object-cover" />
-                ) : (
-                  <span className="text-gray-600 text-4xl font-bold">{getInitials(user.name)}</span>
-                )}
-              </button>
             </div>
 
             {/* Right Side - Top 3 Badges */}
@@ -1242,10 +1242,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="p-6">
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-2">
-                  <strong>Target Size:</strong> 160x160px (Square)
+                  <strong>Target Size:</strong> 128x128px (Circular)
                 </p>
                 <p className="text-sm text-gray-600">
-                  Use the tools below to crop, rotate, or flip your image to fit perfectly in the profile picture box.
+                  Use the tools below to crop, rotate, or flip your image. The profile picture will be displayed as a circle, so crop to a square for best results.
                 </p>
               </div>
               
@@ -1256,8 +1256,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                 autoCropSuggestion={{
                   x: 0,
                   y: 0,
-                  width: 160,
-                  height: 160,
+                  width: 128,
+                  height: 128,
                   aspectRatio: '1:1'
                 }}
               />
