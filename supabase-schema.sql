@@ -234,63 +234,81 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for Users table
+DROP POLICY IF EXISTS "Users can view all profiles" ON public.users;
 CREATE POLICY "Users can view all profiles" ON public.users
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.users;
 CREATE POLICY "Users can update their own profile" ON public.users
   FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.users;
 CREATE POLICY "Users can insert their own profile" ON public.users
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- RLS Policies for Posts table
+DROP POLICY IF EXISTS "Anyone can view posts" ON public.posts;
 CREATE POLICY "Anyone can view posts" ON public.posts
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can create their own posts" ON public.posts;
 CREATE POLICY "Users can create their own posts" ON public.posts
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own posts" ON public.posts;
 CREATE POLICY "Users can update their own posts" ON public.posts
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own posts" ON public.posts;
 CREATE POLICY "Users can delete their own posts" ON public.posts
   FOR DELETE USING (auth.uid() = user_id);
 
 -- RLS Policies for Badges table
+DROP POLICY IF EXISTS "Anyone can view badges" ON public.badges;
 CREATE POLICY "Anyone can view badges" ON public.badges
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can create their own badges" ON public.badges;
 CREATE POLICY "Users can create their own badges" ON public.badges
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own badges" ON public.badges;
 CREATE POLICY "Users can update their own badges" ON public.badges
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own badges" ON public.badges;
 CREATE POLICY "Users can delete their own badges" ON public.badges
   FOR DELETE USING (auth.uid() = user_id);
 
 -- RLS Policies for Connections table
+DROP POLICY IF EXISTS "Users can view their connections" ON public.connections;
 CREATE POLICY "Users can view their connections" ON public.connections
   FOR SELECT USING (auth.uid() = user_id OR auth.uid() = connected_user_id);
 
+DROP POLICY IF EXISTS "Users can create connection requests" ON public.connections;
 CREATE POLICY "Users can create connection requests" ON public.connections
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update connections they're part of" ON public.connections;
 CREATE POLICY "Users can update connections they're part of" ON public.connections
   FOR UPDATE USING (auth.uid() = user_id OR auth.uid() = connected_user_id);
 
 -- RLS Policies for Internships (public read, admin write)
+DROP POLICY IF EXISTS "Anyone can view internships" ON public.internships;
 CREATE POLICY "Anyone can view internships" ON public.internships
   FOR SELECT USING (true);
 
 -- RLS Policies for Courses (public read)
+DROP POLICY IF EXISTS "Anyone can view courses" ON public.courses;
 CREATE POLICY "Anyone can view courses" ON public.courses
   FOR SELECT USING (true);
 
 -- RLS Policies for Pro Subscriptions
+DROP POLICY IF EXISTS "Users can view their own subscriptions" ON public.pro_subscriptions;
 CREATE POLICY "Users can view their own subscriptions" ON public.pro_subscriptions
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can create their own subscriptions" ON public.pro_subscriptions;
 CREATE POLICY "Users can create their own subscriptions" ON public.pro_subscriptions
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
@@ -325,9 +343,11 @@ CREATE POLICY "Users can delete their sent messages" ON public.messages
   FOR DELETE USING (auth.uid() = sender_id);
 
 -- RLS Policies for Notifications
+DROP POLICY IF EXISTS "Users can view their notifications" ON public.notifications;
 CREATE POLICY "Users can view their notifications" ON public.notifications
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their notifications" ON public.notifications;
 CREATE POLICY "Users can update their notifications" ON public.notifications
   FOR UPDATE USING (auth.uid() = user_id);
 

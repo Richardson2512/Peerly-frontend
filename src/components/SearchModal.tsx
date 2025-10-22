@@ -35,7 +35,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery
 
   useEffect(() => {
     const performSearch = async () => {
-      if (query.trim()) {
+      if (query.trim() && currentUserId) {
         setIsLoading(true);
         try {
           const searchResults = await searchService.search(query, currentUserId);
