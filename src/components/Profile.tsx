@@ -21,6 +21,7 @@ import {
   Edit,
   Globe,
   Github,
+  Settings,
   Linkedin,
   BookOpen,
   Code,
@@ -449,9 +450,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             
         {/* Student Info Section with Profile Avatar in the middle */}
         <div className="px-6 pb-4 pt-4">
-          <div className="flex items-start justify-center mb-4">
+          <div className="flex items-start justify-between mb-4">
             {/* Left Side - Student Info */}
-            <div className="flex-1 max-w-sm">
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-4xl font-bold text-gray-900">{user.name}</h1>
                 {user.isPro && (
@@ -508,30 +509,76 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
 
             {/* Right Side - Top 3 Badges */}
-            <div className="ml-12">
-              <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
-              <div className="space-y-1">
-                {loadingBadges ? (
-                  <div className="text-center py-2 text-gray-500">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
-                    <p className="text-xs">Loading...</p>
-                  </div>
-                ) : userBadges.length > 0 ? (
-                  userBadges.slice(0, 3).map((badge) => (
-                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
-                      <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">{badge.rank}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
-                        <p className="text-xs text-gray-600 truncate">{badge.event}</p>
-                      </div>
+            <div className="flex-1 flex justify-end">
+              <div>
+                <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
+                <div className="space-y-1">
+                  {loadingBadges ? (
+                    <div className="text-center py-2 text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
+                      <p className="text-xs">Loading...</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-xs text-gray-500 italic">No achievements yet</div>
-                )}
+                  ) : userBadges.length > 0 ? (
+                    userBadges.slice(0, 3).map((badge) => (
+                      <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
+                        <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">{badge.rank}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
+                          <p className="text-xs text-gray-600 truncate">{badge.event}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xs text-gray-500 italic">No achievements yet</div>
+                  )}
+                </div>
               </div>
+            </div>
+
+            {/* Action Button - 3 dots only */}
+            <div className="ml-4">
+              <button 
+                onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
+                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </button>
+              
+              {/* Profile Dropdown Menu */}
+              {openProfileDropdown && (
+                <div className="absolute right-6 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                  <button
+                    onClick={() => {
+                      setShowCoverModal(true);
+                      setOpenProfileDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-3 text-blue-500" />
+                    Edit Cover Photo
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAvatarModal(true);
+                      setOpenProfileDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-3 text-green-500" />
+                    Edit Profile Photo
+                  </button>
+                  <div className="border-t border-gray-200 my-1"></div>
+                  <button
+                    onClick={() => setOpenProfileDropdown(false)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Settings className="h-4 w-4 mr-3 text-gray-500" />
+                    Profile Settings
+              </button>
+                </div>
+              )}
             </div>
           </div>
 
