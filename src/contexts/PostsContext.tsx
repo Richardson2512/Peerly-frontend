@@ -57,6 +57,16 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const addPost = async (post: Post) => {
     try {
+      console.log('Creating post with data:', {
+        user_id: post.userId,
+        content: post.content,
+        image_url: post.image,
+        video_url: post.video,
+        likes: 0,
+        comments_count: 0,
+        shares_count: 0
+      });
+      
       // Save to Supabase
       const supabasePost = await db.createPost({
         user_id: post.userId,
@@ -67,6 +77,8 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         comments_count: 0,
         shares_count: 0
       });
+      
+      console.log('Post created successfully in Supabase:', supabasePost);
       
       // Create new post with Supabase ID and timestamps, but preserve user info from original post
       const newPost: Post = {
@@ -82,9 +94,11 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         comments: []
       };
       
+      console.log('Adding post to local state:', newPost);
       setPosts(prevPosts => [newPost, ...prevPosts]);
     } catch (error) {
       console.error('Error creating post:', error);
+      console.error('Error details:', error);
       throw error;
     }
   };

@@ -476,18 +476,6 @@ export const db = {
     return data;
   },
 
-  // Post operations
-  async createPost(postData: Database['public']['Tables']['posts']['Insert']) {
-    const { data, error } = await supabase
-      .from('posts')
-      .insert(postData)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
   async getAllPosts(limit: number = 50, offset: number = 0) {
     const { data, error } = await supabase
       .from('posts')
