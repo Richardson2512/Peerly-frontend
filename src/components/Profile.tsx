@@ -476,23 +476,23 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
         </div>
 
-        {/* Student Info and Achievements Section with Profile Avatar */}
-        <div className="px-6 pb-4 relative">
-          {/* Profile Avatar positioned on cover photo */}
-          <div className="absolute left-6 -top-16 z-10">
-            <button 
-              onClick={() => setShowAvatarModal(true)}
-              className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer shadow-lg"
-            >
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
-                )}
-              </button>
-            </div>
-            
-          <div className="flex items-start justify-between gap-6 pt-20">
+        {/* Profile Avatar positioned on cover photo - centered */}
+        <div className="flex justify-center -mt-16 relative z-10">
+          <button 
+            onClick={() => setShowAvatarModal(true)}
+            className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer shadow-lg"
+          >
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
+            )}
+          </button>
+        </div>
+
+        {/* Student Info and Achievements Section - directly below cover */}
+        <div className="px-6 pb-4">
+          <div className="flex items-start justify-between gap-6">
             {/* Left Side - Student Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
