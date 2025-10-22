@@ -129,14 +129,14 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
       const post: Post = {
         id: Date.now().toString(), // Temporary ID, will be replaced by Supabase
-        userId: user.id,
-        userName: user.name,
-        userAvatar: user.avatar,
+      userId: user.id,
+      userName: user.name,
+      userAvatar: user.avatar,
         content: newPost,
         image: imageUrl,
         timestamp: new Date(),
         likes: 0,
-        comments: []
+      comments: []
       };
 
       await addPost(post);
@@ -447,23 +447,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="h-full bg-gradient-to-r from-purple-600 to-emerald-600"></div>
           )}
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-        </div>
-
-        {/* Profile Avatar - Vertical Rectangle positioned above bio */}
-        <div className="flex justify-center -mt-8 relative z-10">
-          <button 
-            onClick={() => setShowAvatarModal(true)}
-            className="w-24 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-          >
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-2xl object-cover" />
-            ) : (
-              <span className="text-white text-2xl font-bold">{getInitials(user.name)}</span>
-            )}
-          </button>
-        </div>
-
-        {/* Student Info Section - Immediately below Cover Photo */}
+            </div>
+            
+        {/* Student Info Section with Profile Avatar in the middle */}
         <div className="px-6 pb-4 pt-8">
           <div className="flex items-start justify-between mb-4">
             {/* Left Side - Student Info */}
@@ -509,6 +495,46 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
+            {/* Middle - Profile Avatar */}
+            <div className="flex justify-center mx-8">
+              <button 
+                onClick={() => setShowAvatarModal(true)}
+                className="w-24 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-2xl object-cover" />
+                ) : (
+                  <span className="text-white text-2xl font-bold">{getInitials(user.name)}</span>
+                )}
+              </button>
+            </div>
+
+            {/* Right Side - Top 3 Badges */}
+            <div className="ml-4">
+              <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
+              <div className="space-y-1">
+                {loadingBadges ? (
+                  <div className="text-center py-2 text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
+                    <p className="text-xs">Loading...</p>
+                  </div>
+                ) : userBadges.length > 0 ? (
+                  userBadges.slice(0, 3).map((badge) => (
+                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
+                      <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">{badge.rank}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
+                        <p className="text-xs text-gray-600 truncate">{badge.event}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-500 italic">No achievements yet</div>
+                )}
+              </div>
+            </div>
 
             {/* Profile Actions */}
             <div className="relative ml-4">
@@ -549,7 +575,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   >
                     <Settings className="h-4 w-4 mr-3 text-gray-500" />
                     Profile Settings
-                  </button>
+              </button>
                 </div>
               )}
             </div>
@@ -580,7 +606,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   >
                     Cancel
                   </button>
-                </div>
+            </div>
               </div>
             ) : (
               <div className="flex items-start justify-between">
@@ -712,19 +738,19 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
               {/* Skills */}
               {user.skills && user.skills.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <Code className="h-5 w-5 mr-2 text-purple-600" />
-                    Skills
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {user.skills.map((skill) => (
-                      <span key={skill} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <Code className="h-5 w-5 mr-2 text-purple-600" />
+                  Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map((skill) => (
+                    <span key={skill} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
+              </div>
               )}
 
               {/* Languages */}
@@ -860,22 +886,22 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               {/* Posts List */}
               {userPosts.length > 0 ? (
                 <div className="space-y-4">
-                  {userPosts.map((post) => (
+              {userPosts.map((post) => (
                     <div key={post.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-3 flex-1">
                           <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                            ) : (
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                      ) : (
                               <span className="text-white font-semibold">{getInitials(user.name)}</span>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-semibold text-gray-900">{post.userName}</span>
-                              <span className="text-gray-500 text-sm">{post.timestamp.toLocaleDateString()}</span>
-                            </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-semibold text-gray-900">{post.userName}</span>
+                        <span className="text-gray-500 text-sm">{post.timestamp.toLocaleDateString()}</span>
+                      </div>
                             <p className="text-gray-700 mb-3 whitespace-pre-wrap">{post.content}</p>
                             
                             {/* Post Image */}
@@ -888,19 +914,19 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                             )}
 
                             <div className="flex items-center space-x-6 text-gray-500 mt-4">
-                              <button className="flex items-center hover:text-red-500 transition-colors">
+                        <button className="flex items-center hover:text-red-500 transition-colors">
                                 <Heart className="h-5 w-5 mr-1" />
-                                {post.likes}
-                              </button>
-                              <button className="flex items-center hover:text-blue-500 transition-colors">
+                          {post.likes}
+                        </button>
+                        <button className="flex items-center hover:text-blue-500 transition-colors">
                                 <MessageCircle className="h-5 w-5 mr-1" />
-                                {post.comments.length}
-                              </button>
+                          {post.comments.length}
+                        </button>
                               <button className="flex items-center hover:text-emerald-500 transition-colors">
                                 <Share className="h-5 w-5 mr-1" />
-                                Share
-                              </button>
-                            </div>
+                          Share
+                        </button>
+                      </div>
                           </div>
                         </div>
                         
@@ -946,10 +972,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                               </button>
                             </div>
                           )}
-                        </div>
-                      </div>
                     </div>
-                  ))}
+                  </div>
+                </div>
+              ))}
                 </div>
               ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
@@ -973,34 +999,34 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Recommended Events</h3>
               {recommendedEvents.length > 0 ? (
                 recommendedEvents.map((event) => (
-                  <div key={event.id} className="bg-gray-50 rounded-lg p-4">
+                <div key={event.id} className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">{event.title}</h4>
-                    <p className="text-gray-600 text-sm mb-2">{event.description}</p>
-                    <div className="flex items-center space-x-4 text-gray-500 text-sm">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {event.date.toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {event.location}
-                      </div>
+                  <p className="text-gray-600 text-sm mb-2">{event.description}</p>
+                  <div className="flex items-center space-x-4 text-gray-500 text-sm">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {event.date.toLocaleDateString()}
                     </div>
-                    <button className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                      Learn More
-                    </button>
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {event.location}
+                    </div>
                   </div>
+                  <button className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                      Learn More
+                  </button>
+                </div>
                 ))
               ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
                   <p className="text-gray-500">Check back later for upcoming events and workshops</p>
-                </div>
-              )}
             </div>
           )}
         </div>
+          )}
+      </div>
       </div>
 
       {/* Create Post Modal */}
