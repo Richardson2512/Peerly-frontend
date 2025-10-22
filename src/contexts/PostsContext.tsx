@@ -87,10 +87,35 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       
       if (userError) {
         console.error('User not found in database:', userError);
-        throw new Error(`User ${post.userId} not found in database`);
+        console.log('Attempting to create user profile in database...');
+        
+        // Try to create the user profile
+        try {
+          const newUserData = {
+            id: post.userId,
+            name: post.userName,
+            email: `${post.userName.toLowerCase().replace(' ', '.')}@example.com`, // Placeholder email
+            college: 'Unknown College',
+            course: 'Unknown Course',
+            course_duration: 4,
+            course_level: 'undergraduate',
+            year: '1',
+            graduation_date: new Date(new Date().getFullYear() + 4, 5, 1).toISOString().split('T')[0],
+            skills: [],
+            interests: [],
+            is_pro: false,
+            is_account_active: true
+          };
+          
+          await db.createUser(newUserData);
+          console.log('User profile created successfully in database');
+        } catch (createError) {
+          console.error('Failed to create user profile:', createError);
+          throw new Error(`User ${post.userId} not found in database and could not be created`);
+        }
+      } else {
+        console.log('User found in database:', userData);
       }
-      
-      console.log('User found in database:', userData);
       
       // Save to Supabase
       const supabasePost = await db.createPost({
