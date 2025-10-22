@@ -538,7 +538,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
 
             {/* Action Button - 3 dots only */}
-            <div className="ml-4">
+            <div className="ml-4 relative">
               <button 
                 onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
                 className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -548,7 +548,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               
               {/* Profile Dropdown Menu */}
               {openProfileDropdown && (
-                <div className="absolute right-6 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
                   <button
                     onClick={() => {
                       setShowCoverModal(true);
