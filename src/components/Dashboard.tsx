@@ -50,10 +50,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   
   // Check if we're on pages that should not show recommendations
   const isOnProfilePage = location.pathname === '/dashboard/profile';
+  const isOnViewProfilePage = location.pathname.startsWith('/dashboard/profile/');
   const isOnNewsPage = location.pathname === '/dashboard/news';
   const isOnInternshipsPage = location.pathname === '/dashboard/internships';
   const isOnLearningPage = location.pathname === '/dashboard/learning';
-  const shouldHideRecommendations = isOnMessagesPage || isOnPeerPage || isOnProfilePage || isOnNewsPage || isOnInternshipsPage || isOnLearningPage;
+  const shouldHideRecommendations = isOnMessagesPage || isOnPeerPage || isOnProfilePage || isOnViewProfilePage || isOnNewsPage || isOnInternshipsPage || isOnLearningPage;
 
   const handleAdInteraction = (interaction: UserAdInteraction) => {
     // Track the interaction for recommendation purposes
