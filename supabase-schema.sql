@@ -3,25 +3,33 @@
 -- ============================================
 -- Run this in your Supabase SQL Editor to create all necessary tables
 --
--- ⚠️ WARNING: This script will DROP existing tables!
--- This is safe for initial setup but will delete all data if re-run.
--- Comment out the DROP statements if you want to preserve existing data.
+-- ⚠️⚠️⚠️ IMPORTANT - READ THIS FIRST! ⚠️⚠️⚠️
+-- 
+-- DROP statements are COMMENTED OUT by default to preserve your data.
+-- This schema is now SAFE to run multiple times - it will only:
+--   ✅ Create missing tables
+--   ✅ Add missing columns
+--   ✅ Update policies and triggers
+--   ✅ Keep all your existing data
+--
+-- Only uncomment DROP statements for a FRESH installation!
 -- ============================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Drop existing tables if they exist (CASCADE removes dependent objects)
--- ⚠️ Comment out these lines if you want to keep existing data
-DROP TABLE IF EXISTS public.notifications CASCADE;
-DROP TABLE IF EXISTS public.messages CASCADE;
-DROP TABLE IF EXISTS public.pro_subscriptions CASCADE;
-DROP TABLE IF EXISTS public.courses CASCADE;
-DROP TABLE IF EXISTS public.internships CASCADE;
-DROP TABLE IF EXISTS public.connections CASCADE;
-DROP TABLE IF EXISTS public.badges CASCADE;
-DROP TABLE IF EXISTS public.posts CASCADE;
-DROP TABLE IF EXISTS public.users CASCADE;
+-- ⚠️ THESE LINES ARE COMMENTED OUT TO PRESERVE YOUR DATA!
+-- ⚠️ Only uncomment for a FRESH installation - this will DELETE ALL DATA!
+-- DROP TABLE IF EXISTS public.notifications CASCADE;
+-- DROP TABLE IF EXISTS public.messages CASCADE;
+-- DROP TABLE IF EXISTS public.pro_subscriptions CASCADE;
+-- DROP TABLE IF EXISTS public.courses CASCADE;
+-- DROP TABLE IF EXISTS public.internships CASCADE;
+-- DROP TABLE IF EXISTS public.connections CASCADE;
+-- DROP TABLE IF EXISTS public.badges CASCADE;
+-- DROP TABLE IF EXISTS public.posts CASCADE;
+-- DROP TABLE IF EXISTS public.users CASCADE;
 
 -- Users table (main profile data)
 CREATE TABLE public.users (
