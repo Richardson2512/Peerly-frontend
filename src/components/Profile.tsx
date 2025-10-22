@@ -477,7 +477,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         </div>
         
         {/* Profile Avatar positioned on cover photo */}
-        <div className="flex justify-center -mt-16 relative z-10">
+        <div className="flex justify-center -mt-16 relative z-10 mb-4">
           <button 
             onClick={() => setShowAvatarModal(true)}
             className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer shadow-lg"
@@ -490,9 +490,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           </button>
         </div>
 
-        {/* Student Info Section */}
-        <div className="px-6 pb-4 pt-8">
-          <div className="flex items-start justify-between mb-4">
+        {/* Student Info and Achievements Section - Side by Side */}
+        <div className="px-6 pb-4">
+          <div className="flex items-start justify-between gap-6">
             {/* Left Side - Student Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -537,31 +537,29 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
 
             {/* Right Side - Top 3 Badges */}
-            <div className="flex-1 flex justify-end">
-              <div>
-                <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
-                <div className="space-y-1">
-                  {loadingBadges ? (
-                    <div className="text-center py-2 text-gray-500">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
-                      <p className="text-xs">Loading...</p>
-                    </div>
-                  ) : userBadges.length > 0 ? (
-                    userBadges.slice(0, 3).map((badge) => (
-                      <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
-                        <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{badge.rank}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
-                          <p className="text-xs text-gray-600 truncate">{badge.event}</p>
-                        </div>
+            <div className="flex-1">
+              <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
+              <div className="space-y-1">
+                {loadingBadges ? (
+                  <div className="text-center py-2 text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
+                    <p className="text-xs">Loading...</p>
+                  </div>
+                ) : userBadges.length > 0 ? (
+                  userBadges.slice(0, 3).map((badge) => (
+                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
+                      <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">{badge.rank}</span>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-xs text-gray-500 italic">No achievements yet</div>
-                  )}
-                </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
+                        <p className="text-xs text-gray-600 truncate">{badge.event}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-500 italic">No achievements yet</div>
+                )}
               </div>
             </div>
 
