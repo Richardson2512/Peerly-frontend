@@ -32,7 +32,8 @@ import {
   Smile,
   Trash2,
   Link as LinkIcon,
-  Pencil
+  Pencil,
+  Camera
 } from 'lucide-react';
 
 interface ProfileProps {
@@ -462,8 +463,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     <div className="w-full max-w-none p-6">
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-        {/* Cover Photo */}
-        <div className="h-48 relative">
+        {/* Cover Photo - Clickable to Edit */}
+        <button 
+          onClick={() => setShowCoverModal(true)}
+          className="h-48 relative w-full group cursor-pointer"
+        >
           {user.coverPhoto ? (
             <img 
               src={user.coverPhoto} 
@@ -473,8 +477,15 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           ) : (
             <div className="h-full bg-gradient-to-r from-purple-600 to-emerald-600"></div>
           )}
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all"></div>
+          
+          {/* Hover Overlay with Edit Icon */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
+              <Camera className="h-6 w-6 text-gray-700" />
         </div>
+          </div>
+        </button>
 
         {/* Profile Avatar positioned on cover photo - centered */}
         <div className="flex justify-center -mt-16 relative z-10">
@@ -482,14 +493,14 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             onClick={() => setShowAvatarModal(true)}
             className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer shadow-lg"
           >
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-            ) : (
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
               <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
-            )}
-          </button>
-        </div>
-
+                )}
+              </button>
+            </div>
+            
         {/* Student Info and Achievements Section - directly below cover */}
         <div className="px-6 pb-4 relative">
           <div className="flex items-start">
