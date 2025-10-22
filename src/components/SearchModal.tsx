@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin, Calendar, Users, Building, Code, GraduationCap, Star, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { SearchResult } from '../types';
 import { searchService } from '../services/searchService';
 
@@ -11,6 +12,7 @@ interface SearchModalProps {
 }
 
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery = '', currentUserId }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -90,6 +92,18 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery
     });
   };
 
+  const handleResultClick = (result: SearchResult) => {
+    if (result.type === 'student') {
+      // Navigate to the user's profile
+      navigate(`/dashboard/profile/${result.id}`);
+      onClose();
+    } else {
+      // For other types (events, companies, etc.), handle accordingly
+      console.log('Clicked:', result.type, result.id);
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -162,7 +176,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery
                 {results.map((result) => {
                   const TypeIcon = getTypeIcon(result.type);
                   return (
-                    <div key={result.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div 
+                      key={result.id} 
+                      onClick={() => handleResultClick(result)}
+                      className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
                       <div className="flex items-start space-x-4">
                         {/* Avatar/Image */}
                         <div className="flex-shrink-0">

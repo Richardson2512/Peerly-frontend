@@ -13,6 +13,7 @@ import Learning from './Learning';
 import Notifications from './Notifications';
 import News from './News';
 import Profile from './Profile';
+import ViewProfile from './ViewProfile';
 import Settings from './Settings';
 import About from './About';
 import Alumni from './Alumni';
@@ -133,6 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 <Route path="/notifications" element={<Notifications user={user} />} />
                 <Route path="/news" element={<News user={user} />} />
                 <Route path="/profile" element={<Profile user={user} />} />
+                <Route path="/profile/:userId" element={<ViewProfile currentUser={user} />} />
                 <Route path="/settings" element={<Settings user={user} />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/alumni" element={<Alumni user={user} />} />
