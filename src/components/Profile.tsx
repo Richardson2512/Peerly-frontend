@@ -74,6 +74,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
   // Get user's posts from shared context - memoized to update when posts change
   const userPosts = useMemo(() => {
+    console.log('All posts:', allPosts);
+    console.log('User ID:', user.id);
+    console.log('Filtered user posts:', allPosts.filter(post => post.userId === user.id));
     return allPosts.filter(post => post.userId === user.id);
   }, [allPosts, user.id]);
 

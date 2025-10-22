@@ -38,8 +38,11 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const refreshPosts = async () => {
     try {
       setLoading(true);
+      console.log('Loading posts from database...');
       const supabasePosts = await db.getAllPosts();
+      console.log('Raw Supabase posts:', supabasePosts);
       const convertedPosts = supabasePosts.map(convertSupabasePost);
+      console.log('Converted posts:', convertedPosts);
       setPosts(convertedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
