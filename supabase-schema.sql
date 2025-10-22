@@ -361,24 +361,31 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON public.users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_posts_updated_at ON public.posts;
 CREATE TRIGGER update_posts_updated_at BEFORE UPDATE ON public.posts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_badges_updated_at ON public.badges;
 CREATE TRIGGER update_badges_updated_at BEFORE UPDATE ON public.badges
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_connections_updated_at ON public.connections;
 CREATE TRIGGER update_connections_updated_at BEFORE UPDATE ON public.connections
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_internships_updated_at ON public.internships;
 CREATE TRIGGER update_internships_updated_at BEFORE UPDATE ON public.internships
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_courses_updated_at ON public.courses;
 CREATE TRIGGER update_courses_updated_at BEFORE UPDATE ON public.courses
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_pro_subscriptions_updated_at ON public.pro_subscriptions;
 CREATE TRIGGER update_pro_subscriptions_updated_at BEFORE UPDATE ON public.pro_subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
