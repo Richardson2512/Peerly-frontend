@@ -59,6 +59,15 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [showCoverModal, setShowCoverModal] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [editedBio, setEditedBio] = useState('');
+  const [showAddBadgeModal, setShowAddBadgeModal] = useState(false);
+  const [newBadge, setNewBadge] = useState({
+    title: '',
+    event: '',
+    rank: '',
+    date: '',
+    category: 'other' as 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other',
+    description: ''
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context - memoized to update when posts change
@@ -250,6 +259,51 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const handleCancelBio = () => {
     setEditedBio('');
     setIsEditingBio(false);
+  };
+
+  const handleAddBadge = () => {
+    setShowAddBadgeModal(true);
+  };
+
+  const handleSaveBadge = () => {
+    if (!newBadge.title.trim() || !newBadge.event.trim() || !newBadge.rank.trim()) {
+      alert('Please fill in all required fields (Title, Event, Rank)');
+      return;
+    }
+
+    const badge = {
+      id: Date.now().toString(),
+      ...newBadge,
+      date: newBadge.date || new Date().toISOString().split('T')[0]
+    };
+
+    // TODO: Save to database
+    console.log('Adding badge:', badge);
+    
+    // Reset form
+    setNewBadge({
+      title: '',
+      event: '',
+      rank: '',
+      date: '',
+      category: 'other',
+      description: ''
+    });
+    
+    setShowAddBadgeModal(false);
+    alert('Badge added successfully! (Note: This is a demo - badge will be saved to database in full implementation)');
+  };
+
+  const handleCancelBadge = () => {
+    setNewBadge({
+      title: '',
+      event: '',
+      rank: '',
+      date: '',
+      category: 'other',
+      description: ''
+    });
+    setShowAddBadgeModal(false);
   };
 
   const renderProficiencyBadge = (proficiency: string) => {
@@ -618,7 +672,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                     Badges & Achievements
                   </h3>
                   <button
-                    onClick={() => alert('Add badge functionality coming soon!')}
+                    onClick={handleAddBadge}
                     className="flex items-center gap-1 px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
                     title="Add Badge"
                   >
@@ -1073,6 +1127,124 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               >
                 Remove Cover
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Badge Modal */}
+      {showAddBadgeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Add New Badge</h3>
+                <button
+                  onClick={handleCancelBadge}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={newBadge.title}
+                    onChange={(e) => setNewBadge({...newBadge, title: e.target.value})}
+                    placeholder="e.g., 1st Place, Best Design"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Event *
+                  </label>
+                  <input
+                    type="text"
+                    value={newBadge.event}
+                    onChange={(e) => setNewBadge({...newBadge, event: e.target.value})}
+                    placeholder="e.g., Stanford Hackathon 2024"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Rank *
+                  </label>
+                  <input
+                    type="text"
+                    value={newBadge.rank}
+                    onChange={(e) => setNewBadge({...newBadge, rank: e.target.value})}
+                    placeholder="e.g., 1st, 2nd, Winner"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newBadge.date}
+                    onChange={(e) => setNewBadge({...newBadge, date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={newBadge.category}
+                    onChange={(e) => setNewBadge({...newBadge, category: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="hackathon">Hackathon</option>
+                    <option value="competition">Competition</option>
+                    <option value="academic">Academic</option>
+                    <option value="sports">Sports</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={newBadge.description}
+                    onChange={(e) => setNewBadge({...newBadge, description: e.target.value})}
+                    placeholder="Optional description..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleSaveBadge}
+                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Add Badge
+                </button>
+                <button
+                  onClick={handleCancelBadge}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
