@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Post } from '../types';
 import { db, supabase } from '../lib/supabase';
+import { appConfig } from '../config/app.config';
 
 interface PostsContextType {
   posts: Post[];
@@ -38,6 +39,17 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const refreshPosts = async () => {
     try {
       setLoading(true);
+      
+      // In mock mode, load posts from localStorage
+      if (appConfig.useMockMode) {
+        console.log('Loading posts from localStorage (mock mode)...');
+        const mockPosts = JSON.parse(localStorage.getItem('mockPosts') || '[]');
+        console.log('Mock posts loaded:', mockPosts);
+        setPosts(mockPosts);
+        return;
+      }
+      
+      // Production mode - load from Supabase
       console.log('Loading posts from database...');
       const supabasePosts = await db.getAllPosts();
       console.log('Raw Supabase posts:', supabasePosts);
@@ -66,6 +78,31 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         comments_count: 0,
         shares_count: 0
       });
+      
+      // In mock mode, store posts locally instead of in database
+      if (appConfig.useMockMode) {
+        console.log('Running in mock mode - storing post locally');
+        const newPost: Post = {
+          ...post,
+          id: Date.now().toString(), // Generate a unique ID
+          timestamp: new Date(),
+          likes: 0,
+          comments: []
+        };
+        
+        console.log('Adding post to local state (mock mode):', newPost);
+        setPosts(prevPosts => [newPost, ...prevPosts]);
+        
+        // Also save to localStorage for persistence
+        const existingPosts = JSON.parse(localStorage.getItem('mockPosts') || '[]');
+        existingPosts.unshift(newPost);
+        localStorage.setItem('mockPosts', JSON.stringify(existingPosts));
+        
+        return;
+      }
+      
+      // Production mode - use Supabase
+      console.log('Running in production mode - saving to Supabase');
       
       // Check if user exists first
       console.log('Checking if user exists in database...');
