@@ -371,6 +371,70 @@ export interface Database {
           updated_at?: string;
         };
       };
+      connections: {
+        Row: {
+          id: string;
+          user_id: string;
+          connected_user_id: string;
+          status: 'pending' | 'accepted' | 'rejected';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          connected_user_id: string;
+          status?: 'pending' | 'accepted' | 'rejected';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          connected_user_id?: string;
+          status?: 'pending' | 'accepted' | 'rejected';
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: 'connection_request' | 'connection_accepted' | 'message' | 'post_like' | 'comment' | 'mention' | 'system';
+          title: string;
+          message: string;
+          is_read: boolean;
+          action_url?: string;
+          related_user_id?: string;
+          related_entity_id?: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: 'connection_request' | 'connection_accepted' | 'message' | 'post_like' | 'comment' | 'mention' | 'system';
+          title: string;
+          message: string;
+          is_read?: boolean;
+          action_url?: string;
+          related_user_id?: string;
+          related_entity_id?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: 'connection_request' | 'connection_accepted' | 'message' | 'post_like' | 'comment' | 'mention' | 'system';
+          title?: string;
+          message?: string;
+          is_read?: boolean;
+          action_url?: string;
+          related_user_id?: string;
+          related_entity_id?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -808,5 +872,269 @@ export const db = {
     
     if (error) throw error;
     return count || 0;
+  },
+
+  // Connection operations
+  async sendConnectionRequest(userId: string, targetUserId: string) {
+    // Check if connection already exists
+    const { data: existing } = await supabase
+      .from('connections')
+      .select('*')
+      .or(`and(user_id.eq.${userId},connected_user_id.eq.${targetUserId}),and(user_id.eq.${targetUserId},connected_user_id.eq.${userId})`)
+      .single();
+    
+    if (existing) {
+      throw new Error('Connection request already exists');
+    }
+
+    // Create connection request
+    const { data, error } = await supabase
+      .from('connections')
+      .insert({
+        user_id: userId,
+        connected_user_id: targetUserId,
+        status: 'pending'
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+
+    // Get sender info for notification
+    const { data: senderData } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .single();
+
+    // Create notification for target user
+    await this.createNotification({
+      user_id: targetUserId,
+      type: 'connection_request',
+      title: 'New Connection Request',
+      message: `${senderData?.name || 'Someone'} wants to connect with you`,
+      related_user_id: userId,
+      related_entity_id: data.id
+    });
+    
+    return data;
+  },
+
+  async acceptConnectionRequest(connectionId: string, userId: string) {
+    // Update connection status
+    const { data, error } = await supabase
+      .from('connections')
+      .update({ status: 'accepted' })
+      .eq('id', connectionId)
+      .eq('connected_user_id', userId) // Only the receiver can accept
+      .select()
+      .single();
+    
+    if (error) throw error;
+
+    // Get accepter info for notification
+    const { data: accepterData } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .single();
+
+    // Notify the requester
+    await this.createNotification({
+      user_id: data.user_id,
+      type: 'connection_accepted',
+      title: 'Connection Accepted',
+      message: `${accepterData?.name || 'Someone'} accepted your connection request`,
+      related_user_id: userId,
+      related_entity_id: connectionId
+    });
+    
+    return data;
+  },
+
+  async rejectConnectionRequest(connectionId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('connections')
+      .update({ status: 'rejected' })
+      .eq('id', connectionId)
+      .eq('connected_user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async removeConnection(connectionId: string) {
+    const { error } = await supabase
+      .from('connections')
+      .delete()
+      .eq('id', connectionId);
+    
+    if (error) throw error;
+  },
+
+  async getConnectionStatus(userId: string, targetUserId: string) {
+    const { data, error } = await supabase
+      .from('connections')
+      .select('*')
+      .or(`and(user_id.eq.${userId},connected_user_id.eq.${targetUserId}),and(user_id.eq.${targetUserId},connected_user_id.eq.${userId})`)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+    return data;
+  },
+
+  async getUserConnections(userId: string, status: 'pending' | 'accepted' | 'rejected' = 'accepted') {
+    const { data, error } = await supabase
+      .from('connections')
+      .select('*')
+      .or(`user_id.eq.${userId},connected_user_id.eq.${userId}`)
+      .eq('status', status);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getConnectionCounts(userId: string) {
+    // Get accepted connections count (peers/friends)
+    const { count: peersCount } = await supabase
+      .from('connections')
+      .select('*', { count: 'exact', head: true })
+      .or(`user_id.eq.${userId},connected_user_id.eq.${userId}`)
+      .eq('status', 'accepted');
+
+    // Get followers (people who sent requests to this user that were accepted)
+    const { count: followersCount } = await supabase
+      .from('connections')
+      .select('*', { count: 'exact', head: true })
+      .eq('connected_user_id', userId)
+      .eq('status', 'accepted');
+
+    // Get following (requests this user sent that were accepted)
+    const { count: followingCount } = await supabase
+      .from('connections')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'accepted');
+
+    return {
+      peers: peersCount || 0,
+      followers: followersCount || 0,
+      following: followingCount || 0
+    };
+  },
+
+  // Notification operations
+  async createNotification(notificationData: Database['public']['Tables']['notifications']['Insert']) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notificationData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserNotifications(userId: string, limit: number = 50) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUnreadNotifications(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_read', false)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markNotificationAsRead(notificationId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markAllNotificationsAsRead(userId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+  },
+
+  async deleteNotification(notificationId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId);
+    
+    if (error) throw error;
+  },
+
+  async getUnreadNotificationCount(userId: string) {
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+    return count || 0;
+  },
+
+  // Search operations
+  async searchUsers(query: string, currentUserId: string, limit: number = 20) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, college, course, course_level, year, avatar_url, bio')
+      .neq('id', currentUserId) // Exclude current user
+      .or(`name.ilike.%${query}%,college.ilike.%${query}%,course.ilike.%${query}%`)
+      .limit(limit);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getRecommendedUsers(userId: string, limit: number = 10) {
+    // Get user's college and course
+    const { data: userData } = await supabase
+      .from('users')
+      .select('college, course')
+      .eq('id', userId)
+      .single();
+
+    if (!userData) return [];
+
+    // Get users from same college/course
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, college, course, course_level, year, avatar_url, bio')
+      .neq('id', userId)
+      .or(`college.eq.${userData.college},course.eq.${userData.course}`)
+      .limit(limit);
+    
+    if (error) throw error;
+    return data || [];
   }
 };
