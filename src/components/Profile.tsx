@@ -32,7 +32,8 @@ import {
   Smile,
   Camera,
   Trash2,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Pencil
 } from 'lucide-react';
 
 interface ProfileProps {
@@ -56,6 +57,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [openProfileDropdown, setOpenProfileDropdown] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCoverModal, setShowCoverModal] = useState(false);
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [editedBio, setEditedBio] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context - memoized to update when posts change
@@ -232,6 +235,23 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     setShowEmojiPicker(false);
   };
 
+  const handleEditBio = () => {
+    setEditedBio(user.bio || '');
+    setIsEditingBio(true);
+  };
+
+  const handleSaveBio = () => {
+    // TODO: Save bio to database
+    console.log('Saving bio:', editedBio);
+    setIsEditingBio(false);
+    // In a real app, you would update the user object here
+  };
+
+  const handleCancelBio = () => {
+    setEditedBio('');
+    setIsEditingBio(false);
+  };
+
   const renderProficiencyBadge = (proficiency: string) => {
     const colors = {
       native: 'bg-green-100 text-green-800',
@@ -332,25 +352,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Right Side - Top 3 Badges */}
-            <div className="ml-4">
-              <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
-              <div className="space-y-1">
-                {user.badges?.slice(0, 3).map((badge, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
-                    <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">{badge.rank}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{badge.title}</p>
-                      <p className="text-xs text-gray-600 truncate">{badge.event}</p>
-                    </div>
-                  </div>
-                )) || (
-                  <div className="text-xs text-gray-500 italic">No achievements yet</div>
-                )}
-              </div>
-            </div>
 
             {/* Profile Actions */}
             <div className="relative ml-4">
@@ -398,11 +399,51 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           </div>
 
           {/* Bio */}
-          {user.bio && (
-            <div className="mb-4">
-              <p className="text-gray-700 text-sm leading-relaxed">{user.bio}</p>
-            </div>
-          )}
+          <div className="mb-4">
+            {isEditingBio ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editedBio}
+                  onChange={(e) => setEditedBio(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  rows={3}
+                  placeholder="Tell us about yourself..."
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveBio}
+                    className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelBio}
+                    className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {user.bio ? (
+                    <p className="text-gray-700 text-sm leading-relaxed">{user.bio}</p>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">No bio yet. Click the pencil to add one.</p>
+                  )}
+                </div>
+                <button
+                  onClick={handleEditBio}
+                  className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Edit bio"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Social Links */}
           <div className="flex gap-4 mb-4">
@@ -571,10 +612,19 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
               {/* Badges & Achievements */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <AwardIcon className="h-5 w-5 mr-2 text-purple-600" />
-                  Badges & Achievements
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                    <AwardIcon className="h-5 w-5 mr-2 text-purple-600" />
+                    Badges & Achievements
+                  </h3>
+                  <button
+                    onClick={() => alert('Add badge functionality coming soon!')}
+                    className="flex items-center gap-1 px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                    title="Add Badge"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {user.badges?.map((badge, index) => (
                     <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
