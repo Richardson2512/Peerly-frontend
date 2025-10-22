@@ -310,6 +310,67 @@ export interface Database {
           updated_at?: string;
         };
       };
+      conversations: {
+        Row: {
+          id: string;
+          participant_one_id: string;
+          participant_two_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          participant_one_id: string;
+          participant_two_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          participant_one_id?: string;
+          participant_two_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          receiver_id: string;
+          content: string;
+          message_type: 'text' | 'image' | 'file';
+          attachment_url?: string;
+          is_read: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          receiver_id: string;
+          content: string;
+          message_type?: 'text' | 'image' | 'file';
+          attachment_url?: string;
+          is_read?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          receiver_id?: string;
+          content?: string;
+          message_type?: 'text' | 'image' | 'file';
+          attachment_url?: string;
+          is_read?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -634,5 +695,118 @@ export const db = {
     
     if (error) throw error;
     return data;
+  },
+
+  // Conversation operations
+  async getOrCreateConversation(userId: string, otherUserId: string) {
+    // Ensure participant_one_id is always less than participant_two_id
+    const [participantOne, participantTwo] = [userId, otherUserId].sort();
+    
+    // Try to find existing conversation
+    const { data: existing, error: findError } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('participant_one_id', participantOne)
+      .eq('participant_two_id', participantTwo)
+      .single();
+    
+    if (existing) return existing;
+    
+    // Create new conversation if it doesn't exist
+    const { data, error } = await supabase
+      .from('conversations')
+      .insert({
+        participant_one_id: participantOne,
+        participant_two_id: participantTwo
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserConversations(userId: string) {
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('*')
+      .or(`participant_one_id.eq.${userId},participant_two_id.eq.${userId}`)
+      .order('updated_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Message operations
+  async sendMessage(messageData: Database['public']['Tables']['messages']['Insert']) {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(messageData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // Update conversation's updated_at timestamp
+    await supabase
+      .from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', messageData.conversation_id);
+    
+    return data;
+  },
+
+  async getConversationMessages(conversationId: string) {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markMessageAsRead(messageId: string) {
+    const { data, error } = await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('id', messageId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async markConversationMessagesAsRead(conversationId: string, userId: string) {
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('conversation_id', conversationId)
+      .eq('receiver_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+  },
+
+  async deleteMessage(messageId: string) {
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', messageId);
+    
+    if (error) throw error;
+  },
+
+  async getUnreadMessageCount(userId: string) {
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', userId)
+      .eq('is_read', false);
+    
+    if (error) throw error;
+    return count || 0;
   }
 };

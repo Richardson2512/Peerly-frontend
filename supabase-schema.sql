@@ -140,14 +140,31 @@ CREATE TABLE public.pro_subscriptions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Conversations table
+CREATE TABLE public.conversations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  participant_one_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  participant_two_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  -- Ensure no duplicate conversations between same users
+  UNIQUE(participant_one_id, participant_two_id),
+  -- Ensure participant_one_id is always less than participant_two_id for consistency
+  CHECK (participant_one_id < participant_two_id)
+);
+
 -- Messages table
 CREATE TABLE public.messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  recipient_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  receiver_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
+  message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file')),
+  attachment_url TEXT,
   is_read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Notifications table
@@ -169,9 +186,14 @@ CREATE INDEX IF NOT EXISTS idx_badges_user_id ON public.badges(user_id);
 CREATE INDEX IF NOT EXISTS idx_badges_created_at ON public.badges(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_connections_user_id ON public.connections(user_id);
 CREATE INDEX IF NOT EXISTS idx_connections_connected_user_id ON public.connections(connected_user_id);
-CREATE INDEX IF NOT EXISTS idx_connections_status ON public.connections(status);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant_one ON public.conversations(participant_one_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant_two ON public.conversations(participant_two_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON public.conversations(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON public.messages(sender_id);
-CREATE INDEX IF NOT EXISTS idx_messages_recipient_id ON public.messages(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON public.messages(receiver_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_connections_status ON public.connections(status);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 
@@ -183,6 +205,7 @@ ALTER TABLE public.connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pro_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
@@ -247,15 +270,28 @@ CREATE POLICY "Users can view their own subscriptions" ON public.pro_subscriptio
 CREATE POLICY "Users can create their own subscriptions" ON public.pro_subscriptions
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- RLS Policies for Conversations
+CREATE POLICY "Users can view their conversations" ON public.conversations
+  FOR SELECT USING (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
+
+CREATE POLICY "Users can create conversations" ON public.conversations
+  FOR INSERT WITH CHECK (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
+
+CREATE POLICY "Users can update their conversations" ON public.conversations
+  FOR UPDATE USING (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
+
 -- RLS Policies for Messages
 CREATE POLICY "Users can view their messages" ON public.messages
-  FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = recipient_id);
+  FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
 CREATE POLICY "Users can send messages" ON public.messages
   FOR INSERT WITH CHECK (auth.uid() = sender_id);
 
-CREATE POLICY "Users can update messages they received" ON public.messages
-  FOR UPDATE USING (auth.uid() = recipient_id);
+CREATE POLICY "Users can update their received messages" ON public.messages
+  FOR UPDATE USING (auth.uid() = receiver_id OR auth.uid() = sender_id);
+
+CREATE POLICY "Users can delete their sent messages" ON public.messages
+  FOR DELETE USING (auth.uid() = sender_id);
 
 -- RLS Policies for Notifications
 CREATE POLICY "Users can view their notifications" ON public.notifications
@@ -293,6 +329,12 @@ CREATE TRIGGER update_courses_updated_at BEFORE UPDATE ON public.courses
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_pro_subscriptions_updated_at BEFORE UPDATE ON public.pro_subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON public.conversations
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_messages_updated_at BEFORE UPDATE ON public.messages
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Grant permissions
