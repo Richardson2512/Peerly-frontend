@@ -21,7 +21,6 @@ import {
   Edit,
   Globe,
   Github,
-  Settings,
   Linkedin,
   BookOpen,
   Code,
@@ -54,7 +53,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [mediaValidationResult, setMediaValidationResult] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [openPostDropdown, setOpenPostDropdown] = useState<string | null>(null);
-  const [openProfileDropdown, setOpenProfileDropdown] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCoverModal, setShowCoverModal] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -100,19 +98,16 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       if (openPostDropdown) {
         setOpenPostDropdown(null);
       }
-      if (openProfileDropdown) {
-        setOpenProfileDropdown(false);
-      }
     };
 
-    if (openPostDropdown || openProfileDropdown) {
+    if (openPostDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [openPostDropdown, openProfileDropdown]);
+  }, [openPostDropdown]);
 
   const handleCreatePost = async () => {
     if (!newPost.trim()) return;
@@ -544,50 +539,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Action Button - 3 dots only */}
-            <div className="ml-4 relative">
-              <button 
-                data-dropdown-trigger
-                onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
-                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
-              
-              {/* Profile Dropdown Menu */}
-              {openProfileDropdown && (
-                <div data-dropdown-menu className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
-                  <button
-                    onClick={() => {
-                      setShowCoverModal(true);
-                      setOpenProfileDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-3 text-blue-500" />
-                    Edit Cover Photo
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAvatarModal(true);
-                      setOpenProfileDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-3 text-green-500" />
-                    Edit Profile Photo
-                  </button>
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <button
-                    onClick={() => setOpenProfileDropdown(false)}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Settings className="h-4 w-4 mr-3 text-gray-500" />
-                    Profile Settings
-              </button>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Bio */}
