@@ -20,6 +20,7 @@ import {
   Edit,
   Globe,
   Github,
+  Settings,
   Linkedin,
   BookOpen,
   Code,
@@ -55,6 +56,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [mediaValidationResult, setMediaValidationResult] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [openPostDropdown, setOpenPostDropdown] = useState<string | null>(null);
+  const [openProfileDropdown, setOpenProfileDropdown] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showCoverModal, setShowCoverModal] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context - memoized to update when posts change
@@ -71,16 +75,19 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       if (openPostDropdown) {
         setOpenPostDropdown(null);
       }
+      if (openProfileDropdown) {
+        setOpenProfileDropdown(false);
+      }
     };
 
-    if (openPostDropdown) {
+    if (openPostDropdown || openProfileDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [openPostDropdown]);
+  }, [openPostDropdown, openProfileDropdown]);
 
   const handleCreatePost = async () => {
     if (!newPost.trim()) return;
@@ -260,35 +267,31 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="w-full max-w-none p-6">
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
         {/* Cover Photo */}
-        <div className="h-48 bg-gradient-to-r from-purple-600 to-emerald-600 relative">
+        <div className="h-48 bg-gradient-to-r from-purple-600 to-emerald-600 relative flex items-center justify-center">
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          <button className="absolute top-4 right-4 bg-white bg-opacity-20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all">
-            <Edit className="h-4 w-4 mr-2 inline" />
-            Edit Cover
-          </button>
+          {/* Profile Avatar centered in cover */}
+          <div className="relative z-10">
+            <button 
+              onClick={() => setShowAvatarModal(true)}
+              className="w-32 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+            >
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <span className="text-white text-3xl font-bold">{getInitials(user.name)}</span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Profile Info */}
         <div className="px-6 pb-6">
-          <div className="flex items-end -mt-16 mb-4">
-            <div className="relative">
-              <div className="w-32 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span className="text-white text-3xl font-bold">{getInitials(user.name)}</span>
-                )}
-              </div>
-              <button className="absolute -bottom-2 -right-2 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors">
-                <Camera className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="ml-6 flex-1">
+          <div className="flex items-center justify-between mb-4 pt-4">
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
                 {user.isPro && (
@@ -317,34 +320,47 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Message
-              </button>
+            <div className="relative">
               <button 
-                onClick={() => setIsFollowing(!isFollowing)}
-                className={`px-6 py-2 rounded-lg transition-colors flex items-center ${
-                  isFollowing 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
+                className="border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {isFollowing ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Following
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Follow
-                  </>
-                )}
-              </button>
-              <button className="border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 <MoreHorizontal className="h-4 w-4" />
               </button>
+              
+              {/* Profile Dropdown Menu */}
+              {openProfileDropdown && (
+                <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                  <button
+                    onClick={() => {
+                      setShowCoverModal(true);
+                      setOpenProfileDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-3 text-blue-500" />
+                    Edit Cover Photo
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAvatarModal(true);
+                      setOpenProfileDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Camera className="h-4 w-4 mr-3 text-green-500" />
+                    Edit Profile Photo
+                  </button>
+                  <div className="border-t border-gray-200 my-1"></div>
+                  <button
+                    onClick={() => setOpenProfileDropdown(false)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                  >
+                    <Settings className="h-4 w-4 mr-3 text-gray-500" />
+                    Profile Settings
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -849,6 +865,104 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           }}
           autoCropSuggestion={mediaValidationResult?.autoCropSuggestion}
         />
+      )}
+
+      {/* Avatar Edit Modal */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Profile Photo</h3>
+              <button
+                onClick={() => setShowAvatarModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="text-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center mx-auto mb-4">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-white text-2xl font-bold">{getInitials(user.name)}</span>
+                )}
+              </div>
+              <p className="text-gray-600">Current profile photo</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  // TODO: Implement avatar upload
+                  alert('Avatar upload functionality coming soon!');
+                  setShowAvatarModal(false);
+                }}
+                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Upload New Photo
+              </button>
+              <button
+                onClick={() => {
+                  // TODO: Implement avatar removal
+                  alert('Remove photo functionality coming soon!');
+                  setShowAvatarModal(false);
+                }}
+                className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                Remove Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cover Photo Edit Modal */}
+      {showCoverModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Cover Photo</h3>
+              <button
+                onClick={() => setShowCoverModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="text-center mb-6">
+              <div className="h-24 bg-gradient-to-r from-purple-600 to-emerald-600 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white font-medium">Current cover photo</span>
+              </div>
+              <p className="text-gray-600">Current cover photo</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  // TODO: Implement cover upload
+                  alert('Cover photo upload functionality coming soon!');
+                  setShowCoverModal(false);
+                }}
+                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Upload New Cover
+              </button>
+              <button
+                onClick={() => {
+                  // TODO: Implement cover removal
+                  alert('Remove cover functionality coming soon!');
+                  setShowCoverModal(false);
+                }}
+                className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                Remove Cover
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
