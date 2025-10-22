@@ -321,7 +321,7 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
                   {/* Flag dropdown */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10 opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border z-10 opacity-0 hover:opacity-100 transition-opacity">
                     <div className="py-1">
                       <button
                         onClick={() => handleFlagPost(post.id)}

@@ -602,7 +602,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                           
                           {/* Dropdown Menu */}
                           {openPostDropdown === post.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                            <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
                               {/* Edit Post */}
                               <button
                                 onClick={() => handleEditPost(post.id)}
