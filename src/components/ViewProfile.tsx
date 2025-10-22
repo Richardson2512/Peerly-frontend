@@ -8,7 +8,6 @@ import {
   Eye, 
   Users, 
   Star,
-  ArrowLeft,
   MessageCircle,
   UserPlus,
   Check,
@@ -209,15 +208,6 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
 
   return (
     <div className="w-full max-w-none p-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-      >
-        <ArrowLeft className="h-5 w-5 mr-2" />
-        Back
-      </button>
-
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
         {/* Cover Photo - Not clickable for other users */}
@@ -233,9 +223,9 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
           )}
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
         </div>
-        
-        {/* Profile Avatar */}
-        <div className="flex justify-center -mt-16 relative z-10 mb-4">
+
+        {/* Profile Avatar positioned on cover photo - centered */}
+        <div className="flex justify-center -mt-16 relative z-10">
           <div className="w-32 h-32 bg-white border-4 border-white rounded-full flex items-center justify-center shadow-lg">
             {user.avatar_url ? (
               <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-full object-cover" />
@@ -244,8 +234,8 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
             )}
           </div>
         </div>
-
-        {/* Student Info and Achievements */}
+            
+        {/* Student Info and Achievements Section - directly below cover */}
         <div className="px-6 pb-4 relative">
           <div className="flex items-start">
             {/* Left Side - Student Info */}
@@ -268,14 +258,12 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">{user.college}</p>
-                  <p className="text-xs text-gray-600">
-                    {user.course_level.charAt(0).toUpperCase() + user.course_level.slice(1)} Program
-                  </p>
+                  <p className="text-xs text-gray-600">{user.course_level.charAt(0).toUpperCase() + user.course_level.slice(1)} Program</p>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
+              <div className="flex items-center gap-3 text-xs text-gray-500">
                 {user.location && (
                   <div className="flex items-center">
                     <MapPin className="h-3 w-3 mr-1" />
@@ -291,21 +279,9 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
                   {connectionCounts.followers} followers
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                {getConnectionButton()}
-                <button
-                  onClick={handleMessage}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Message
-                </button>
-              </div>
             </div>
 
-            {/* Right Side - Top 3 Badges */}
+            {/* Right Side - Top 3 Badges - Positioned at far right */}
             <div className="absolute right-6 top-0">
               <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
               <div className="space-y-1">
@@ -326,10 +302,11 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
                 )}
               </div>
             </div>
+
           </div>
 
           {/* Bio */}
-          <div className="mb-4 mt-4">
+          <div className="mb-4">
             {user.bio ? (
               <p className="text-gray-700 text-sm leading-relaxed">{user.bio}</p>
             ) : (
@@ -338,19 +315,31 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
           </div>
 
           {/* Social Links */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 mb-4">
             {user.linkedin_url && (
-              <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:text-blue-700 text-sm">
-                <Linkedin className="h-4 w-4 mr-2" />
+              <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:text-blue-700">
+                <Linkedin className="h-5 w-5 mr-2" />
                 LinkedIn
               </a>
             )}
             {user.github_url && (
-              <a href={user.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-700 hover:text-gray-800 text-sm">
-                <Github className="h-4 w-4 mr-2" />
+              <a href={user.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-700 hover:text-gray-800">
+                <Github className="h-5 w-5 mr-2" />
                 GitHub
               </a>
             )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            {getConnectionButton()}
+            <button
+              onClick={handleMessage}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Message
+            </button>
           </div>
         </div>
       </div>
