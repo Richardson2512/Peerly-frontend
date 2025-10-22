@@ -106,9 +106,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="h-full flex flex-col space-y-4">
           {/* User Info + Regular Features Box */}
           <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4">
-            {/* User Info */}
-            <div className="flex items-center mb-3 pb-3 border-b border-gray-100">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+            {/* User Info - Clickable to Profile */}
+            <button 
+              onClick={() => handleNavigation('/dashboard/profile')}
+              className="flex items-center mb-3 pb-3 border-b border-gray-100 w-full text-left hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors cursor-pointer"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
                 {user.name.charAt(0)}
               </div>
               <div className="ml-2 flex-1 min-w-0">
@@ -127,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {user.college}
                 </p>
               </div>
-            </div>
+            </button>
 
             {/* Conditional Content Based on Page */}
             {isOnPeerPage ? (
