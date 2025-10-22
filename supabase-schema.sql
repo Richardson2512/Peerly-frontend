@@ -171,11 +171,13 @@ CREATE TABLE public.messages (
 CREATE TABLE public.notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  type TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('connection_request', 'connection_accepted', 'message', 'post_like', 'comment', 'mention', 'system')),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
   action_url TEXT,
+  related_user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  related_entity_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
