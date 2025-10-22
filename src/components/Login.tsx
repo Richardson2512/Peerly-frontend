@@ -373,7 +373,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         if (authData.user) {
           // Get user profile from database
-          const userProfile = await db.getUserById(authData.user.id);
+          let userProfile;
+          try {
+            userProfile = await db.getUserById(authData.user.id);
+          } catch (profileError) {
+            console.error('Failed to fetch user profile:', profileError);
+            setError('Your profile could not be loaded. Please contact support or try signing up again.');
+            setLoading(false);
+            return;
+          }
+
+          if (!userProfile) {
+            setError('User profile not found in database. Please contact support.');
+            setLoading(false);
+            return;
+          }
 
           // Convert to User type for the app
           const user: User = {
