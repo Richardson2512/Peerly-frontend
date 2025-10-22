@@ -55,6 +55,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [openPostDropdown, setOpenPostDropdown] = useState<string | null>(null);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCoverModal, setShowCoverModal] = useState(false);
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const [tempAvatarUrl, setTempAvatarUrl] = useState<string | null>(null);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [editedBio, setEditedBio] = useState('');
   const [showAddBadgeModal, setShowAddBadgeModal] = useState(false);
@@ -350,7 +352,13 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     setShowAddBadgeModal(false);
   };
 
-  const handleAvatarUpload = async (file: File) => {
+  const handleAvatarFileSelect = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setTempAvatarUrl(url);
+    setShowAvatarEditor(true);
+  };
+
+  const handleSaveEditedAvatar = async (editedImageUrl: string) => {
     if (!user.id) {
       alert('User not found. Please log in again.');
       return;
@@ -358,23 +366,38 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
     setUploadingAvatar(true);
     try {
-      // Upload avatar to storage
+      // Convert the edited image URL back to a File
+      const response = await fetch(editedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      
+      // Upload to Supabase Storage
       const avatarUrl = await uploadAvatar(user.id, file);
       
       // Update user profile in database
       await db.updateUserAvatar(user.id, avatarUrl);
       
-      // Update local user object (you might want to use a context or state management for this)
-      // For now, we'll show a success message
-      alert('Profile picture updated successfully! Please refresh the page to see changes.');
+      // Update local user object
+      const updatedUser = { ...user, avatar: avatarUrl };
+      localStorage.setItem('studentUser', JSON.stringify(updatedUser));
       
+      // Clean up
+      setShowAvatarEditor(false);
       setShowAvatarModal(false);
+      setTempAvatarUrl(null);
+      
+      alert('Profile picture updated successfully! Please refresh the page to see changes.');
     } catch (error) {
       console.error('Error uploading avatar:', error);
       alert('Failed to upload profile picture. Please try again.');
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  const handleCancelAvatarEdit = () => {
+    setShowAvatarEditor(false);
+    setTempAvatarUrl(null);
   };
 
   const handleCoverUpload = async (file: File) => {
@@ -1168,7 +1191,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      handleAvatarUpload(file);
+                      handleAvatarFileSelect(file);
                     }
                   }}
                   className="hidden"
@@ -1198,6 +1221,47 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   Remove Photo
                 </button>
               </div>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Editor Modal */}
+      {showAvatarEditor && tempAvatarUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Profile Photo</h3>
+              <button
+                onClick={handleCancelAvatarEdit}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Target Size:</strong> 160x160px (Square)
+                </p>
+                <p className="text-sm text-gray-600">
+                  Use the tools below to crop, rotate, or flip your image to fit perfectly in the profile picture box.
+                </p>
+              </div>
+              
+              <MediaEditor
+                imageUrl={tempAvatarUrl}
+                onSave={handleSaveEditedAvatar}
+                onCancel={handleCancelAvatarEdit}
+                autoCropSuggestion={{
+                  x: 0,
+                  y: 0,
+                  width: 160,
+                  height: 160,
+                  aspectRatio: '1:1'
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
