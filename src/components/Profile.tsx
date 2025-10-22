@@ -491,8 +491,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         </div>
 
         {/* Student Info and Achievements Section - directly below cover */}
-        <div className="px-6 pb-4">
-          <div className="flex items-start justify-between gap-6">
+        <div className="px-6 pb-4 relative">
+          <div className="flex items-start">
             {/* Left Side - Student Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -536,8 +536,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Right Side - Top 3 Badges */}
-            <div className="flex-1">
+            {/* Right Side - Top 3 Badges - Positioned at far right */}
+            <div className="absolute right-6 top-0">
               <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
               <div className="space-y-1">
                 {loadingBadges ? (
@@ -547,7 +547,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   </div>
                 ) : userBadges.length > 0 ? (
                   userBadges.slice(0, 3).map((badge) => (
-                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
+                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1 min-w-[250px]">
                       <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{badge.rank}</span>
                       </div>
