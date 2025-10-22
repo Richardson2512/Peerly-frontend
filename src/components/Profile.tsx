@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { User, Post, Event } from '../types';
 import { uploadPostMedia } from '../lib/storage';
 import { usePosts } from '../contexts/PostsContext';
@@ -41,7 +41,7 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ user }) => {
-  const { addPost, deletePost: deletePostFromContext, getUserPosts } = usePosts();
+  const { posts: allPosts, addPost, deletePost: deletePostFromContext, getUserPosts } = usePosts();
   const [activeTab, setActiveTab] = useState<'about' | 'activity' | 'events'>('about');
   const [isFollowing, setIsFollowing] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -57,8 +57,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [openPostDropdown, setOpenPostDropdown] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Get user's posts from shared context
-  const userPosts = getUserPosts(user.id);
+  // Get user's posts from shared context - memoized to update when posts change
+  const userPosts = useMemo(() => {
+    return allPosts.filter(post => post.userId === user.id);
+  }, [allPosts, user.id]);
 
   // Recommended events (empty for new users, would be fetched from backend)
   const recommendedEvents: Event[] = [];
