@@ -499,12 +499,12 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="flex justify-center mx-8">
               <button 
                 onClick={() => setShowAvatarModal(true)}
-                className="w-24 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+                className="w-24 h-24 bg-gray-200 border-2 border-gray-300 flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
               >
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-2xl object-cover" />
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-white text-2xl font-bold">{getInitials(user.name)}</span>
+                  <span className="text-gray-600 text-2xl font-bold">{getInitials(user.name)}</span>
                 )}
               </button>
             </div>
@@ -1188,11 +1188,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
             
               <div className="text-center mb-6">
-                <div className="w-24 h-32 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center mx-auto mb-4">
+                <div className="w-24 h-24 bg-gray-200 border-2 border-gray-300 flex items-center justify-center mx-auto mb-4">
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="w-full h-full rounded-2xl object-cover" />
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-white text-2xl font-bold">{getInitials(user.name)}</span>
+                    <span className="text-gray-600 text-2xl font-bold">{getInitials(user.name)}</span>
                   )}
                 </div>
                 <p className="text-gray-600">Current profile photo</p>
