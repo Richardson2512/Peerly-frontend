@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Post } from '../types';
-import { db } from '../lib/supabase';
+import { db, supabase } from '../lib/supabase';
 
 interface PostsContextType {
   posts: Post[];
@@ -67,6 +67,21 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         shares_count: 0
       });
       
+      // Check if user exists first
+      console.log('Checking if user exists in database...');
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, name')
+        .eq('id', post.userId)
+        .single();
+      
+      if (userError) {
+        console.error('User not found in database:', userError);
+        throw new Error(`User ${post.userId} not found in database`);
+      }
+      
+      console.log('User found in database:', userData);
+      
       // Save to Supabase
       const supabasePost = await db.createPost({
         user_id: post.userId,
@@ -99,6 +114,9 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch (error) {
       console.error('Error creating post:', error);
       console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error hint:', error.hint);
       throw error;
     }
   };
