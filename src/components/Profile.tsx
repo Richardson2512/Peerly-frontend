@@ -21,7 +21,6 @@ import {
   Edit,
   Globe,
   Github,
-  Settings,
   Linkedin,
   BookOpen,
   Code,
@@ -31,7 +30,6 @@ import {
   X,
   Image as ImageIcon,
   Smile,
-  Camera,
   Trash2,
   Link as LinkIcon,
   Pencil
@@ -450,10 +448,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
             
         {/* Student Info Section with Profile Avatar in the middle */}
-        <div className="px-6 pb-4 pt-8">
+        <div className="px-6 pb-4 pt-4">
           <div className="flex items-start justify-center mb-4">
             {/* Left Side - Student Info */}
-            <div className="flex-1 max-w-md">
+            <div className="flex-1 max-w-sm">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-4xl font-bold text-gray-900">{user.name}</h1>
                 {user.isPro && (
@@ -496,21 +494,21 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
 
             {/* Middle - Profile Avatar */}
-            <div className="flex justify-center mx-12">
+            <div className="flex justify-center mx-8">
               <button 
                 onClick={() => setShowAvatarModal(true)}
-                className="w-24 h-24 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
+                className="w-32 h-40 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
               >
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full rounded-lg object-cover" />
                 ) : (
-                  <span className="text-gray-600 text-2xl font-bold">{getInitials(user.name)}</span>
+                  <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
                 )}
               </button>
             </div>
 
             {/* Right Side - Top 3 Badges */}
-            <div className="flex-1 max-w-md ml-8">
+            <div className="ml-12">
               <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
               <div className="space-y-1">
                 {loadingBadges ? (
@@ -534,50 +532,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   <div className="text-xs text-gray-500 italic">No achievements yet</div>
                 )}
               </div>
-            </div>
-
-            {/* Profile Actions */}
-            <div className="relative ml-4">
-              <button 
-                onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
-                className="border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-              
-              {/* Profile Dropdown Menu */}
-              {openProfileDropdown && (
-                <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
-                  <button
-                    onClick={() => {
-                      setShowCoverModal(true);
-                      setOpenProfileDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-3 text-blue-500" />
-                    Edit Cover Photo
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAvatarModal(true);
-                      setOpenProfileDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Camera className="h-4 w-4 mr-3 text-green-500" />
-                    Edit Profile Photo
-                  </button>
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <button
-                    onClick={() => setOpenProfileDropdown(false)}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
-                  >
-                    <Settings className="h-4 w-4 mr-3 text-gray-500" />
-                    Profile Settings
-              </button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -1188,11 +1142,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
             
               <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <div className="w-32 h-40 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center mx-auto mb-4">
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.name} className="w-full h-full rounded-lg object-cover" />
                   ) : (
-                    <span className="text-gray-600 text-2xl font-bold">{getInitials(user.name)}</span>
+                    <span className="text-gray-600 text-3xl font-bold">{getInitials(user.name)}</span>
                   )}
                 </div>
                 <p className="text-gray-600">Current profile photo</p>
