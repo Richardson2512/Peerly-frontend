@@ -5,6 +5,7 @@ import SearchModal from './SearchModal';
 
 interface HeaderProps {
   user: {
+    id: string;
     name: string;
     avatar?: string;
     isPro: boolean;
@@ -136,6 +137,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
       isOpen={isSearchOpen}
       onClose={() => setIsSearchOpen(false)}
       initialQuery={searchQuery}
+      currentUserId={user.id}
     />
     </>
   );

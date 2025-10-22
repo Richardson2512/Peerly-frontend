@@ -7,9 +7,10 @@ interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialQuery?: string;
+  currentUserId: string;
 }
 
-const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery = '' }) => {
+const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery = '', currentUserId }) => {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -18,9 +19,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery
 
   const categories = [
     { id: 'all', label: 'All', icon: Search },
+    { id: 'student', label: 'Students', icon: Users },
     { id: 'event', label: 'Events', icon: Calendar },
     { id: 'college', label: 'Colleges', icon: GraduationCap },
-    { id: 'student', label: 'Students', icon: Users },
     { id: 'hackathon', label: 'Hackathons', icon: Code },
     { id: 'company', label: 'Companies', icon: Building },
     { id: 'recruiter', label: 'Recruiters', icon: Users }
@@ -33,20 +34,29 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, initialQuery
   }, [isOpen]);
 
   useEffect(() => {
-    if (query.trim()) {
-      setIsLoading(true);
-      const filteredResults = selectedCategory === 'all' 
-        ? searchService.search(query)
-        : searchService.search(query).filter(result => result.type === selectedCategory);
-      
-      setTimeout(() => {
-        setResults(filteredResults);
-        setIsLoading(false);
-      }, 300);
-    } else {
-      setResults([]);
-    }
-  }, [query, selectedCategory]);
+    const performSearch = async () => {
+      if (query.trim()) {
+        setIsLoading(true);
+        try {
+          const searchResults = await searchService.search(query, currentUserId);
+          const filteredResults = selectedCategory === 'all' 
+            ? searchResults
+            : searchResults.filter(result => result.type === selectedCategory);
+          setResults(filteredResults);
+        } catch (error) {
+          console.error('Search error:', error);
+          setResults([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setResults([]);
+      }
+    };
+
+    const searchTimeout = setTimeout(performSearch, 300);
+    return () => clearTimeout(searchTimeout);
+  }, [query, selectedCategory, currentUserId]);
 
   const getTypeIcon = (type: SearchResult['type']) => {
     switch (type) {
