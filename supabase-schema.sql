@@ -287,25 +287,32 @@ CREATE POLICY "Users can create their own subscriptions" ON public.pro_subscript
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- RLS Policies for Conversations
+DROP POLICY IF EXISTS "Users can view their conversations" ON public.conversations;
 CREATE POLICY "Users can view their conversations" ON public.conversations
   FOR SELECT USING (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
 
+DROP POLICY IF EXISTS "Users can create conversations" ON public.conversations;
 CREATE POLICY "Users can create conversations" ON public.conversations
   FOR INSERT WITH CHECK (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
 
+DROP POLICY IF EXISTS "Users can update their conversations" ON public.conversations;
 CREATE POLICY "Users can update their conversations" ON public.conversations
   FOR UPDATE USING (auth.uid() = participant_one_id OR auth.uid() = participant_two_id);
 
 -- RLS Policies for Messages
+DROP POLICY IF EXISTS "Users can view their messages" ON public.messages;
 CREATE POLICY "Users can view their messages" ON public.messages
   FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
+DROP POLICY IF EXISTS "Users can send messages" ON public.messages;
 CREATE POLICY "Users can send messages" ON public.messages
   FOR INSERT WITH CHECK (auth.uid() = sender_id);
 
+DROP POLICY IF EXISTS "Users can update their received messages" ON public.messages;
 CREATE POLICY "Users can update their received messages" ON public.messages
   FOR UPDATE USING (auth.uid() = receiver_id OR auth.uid() = sender_id);
 
+DROP POLICY IF EXISTS "Users can delete their sent messages" ON public.messages;
 CREATE POLICY "Users can delete their sent messages" ON public.messages
   FOR DELETE USING (auth.uid() = sender_id);
 
@@ -347,9 +354,11 @@ CREATE TRIGGER update_courses_updated_at BEFORE UPDATE ON public.courses
 CREATE TRIGGER update_pro_subscriptions_updated_at BEFORE UPDATE ON public.pro_subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations;
 CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON public.conversations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_messages_updated_at ON public.messages;
 CREATE TRIGGER update_messages_updated_at BEFORE UPDATE ON public.messages
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
