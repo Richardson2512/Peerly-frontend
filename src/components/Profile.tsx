@@ -85,7 +85,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       }
 
       const post: Post = {
-        id: Date.now().toString(),
+        id: Date.now().toString(), // Temporary ID, will be replaced by Supabase
         userId: user.id,
         userName: user.name,
         userAvatar: user.avatar,
@@ -96,7 +96,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         comments: []
       };
 
-      addPost(post);
+      await addPost(post);
       setNewPost('');
       setPostImage(null);
       setImageFile(null);
@@ -109,10 +109,15 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     }
   };
 
-  const handleDeletePost = (postId: string) => {
+  const handleDeletePost = async (postId: string) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      deletePostFromContext(postId);
-      setOpenPostDropdown(null);
+      try {
+        await deletePostFromContext(postId);
+        setOpenPostDropdown(null);
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
+      }
     }
   };
 

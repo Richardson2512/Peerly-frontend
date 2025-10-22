@@ -119,7 +119,7 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
     ));
   };
 
-  const handleSubmitPost = () => {
+  const handleSubmitPost = async () => {
     if (!newPost.trim()) return;
 
     // Check for inappropriate content
@@ -129,17 +129,26 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
     }
 
     const post: Post = {
-      id: Date.now().toString(),
+      id: Date.now().toString(), // Temporary ID, will be replaced by Supabase
       userId: user.id,
       userName: user.name,
+      userAvatar: user.avatar,
       content: newPost,
+      image: postImage || undefined,
       timestamp: new Date(),
       likes: 0,
       comments: []
     };
 
-    setPosts([post, ...posts]);
-    setNewPost('');
+    try {
+      await addPost(post);
+      setNewPost('');
+      setPostImage(null);
+      setImageFile(null);
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    }
   };
 
   const handleFlagPost = (postId: string) => {
@@ -209,20 +218,26 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
                 Cancel Post
               </button>
               <button
-                onClick={() => {
-                  setShowContentWarning(false);
+                onClick={async () => {
                   // Force post despite warning (for demo purposes)
                   const post: Post = {
                     id: Date.now().toString(),
                     userId: user.id,
                     userName: user.name,
+                    userAvatar: user.avatar,
                     content: newPost,
                     timestamp: new Date(),
                     likes: 0,
                     comments: []
                   };
-                  setPosts([post, ...posts]);
-                  setNewPost('');
+                  try {
+                    await addPost(post);
+                    setNewPost('');
+                    setShowContentWarning(false);
+                  } catch (error) {
+                    console.error('Error creating post:', error);
+                    alert('Failed to create post. Please try again.');
+                  }
                 }}
                 className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg transition-colors"
               >

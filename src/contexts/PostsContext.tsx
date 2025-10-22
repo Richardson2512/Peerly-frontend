@@ -1,54 +1,105 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Post } from '../types';
+import { db } from '../lib/supabase';
 
 interface PostsContextType {
   posts: Post[];
-  addPost: (post: Post) => void;
-  deletePost: (postId: string) => void;
-  updatePost: (postId: string, content: string) => void;
+  addPost: (post: Post) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  updatePost: (postId: string, content: string) => Promise<void>;
   getUserPosts: (userId: string) => Post[];
+  loading: boolean;
+  refreshPosts: () => Promise<void>;
 }
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
+// Helper function to convert Supabase post to our Post type
+const convertSupabasePost = (supabasePost: any): Post => {
+  return {
+    id: supabasePost.id,
+    userId: supabasePost.user_id,
+    userName: supabasePost.users?.name || 'Unknown User',
+    userAvatar: supabasePost.users?.avatar_url,
+    content: supabasePost.content,
+    image: supabasePost.image_url,
+    video: supabasePost.video_url,
+    timestamp: new Date(supabasePost.created_at),
+    likes: supabasePost.likes || 0,
+    comments: [] // Comments would be loaded separately
+  };
+};
+
 export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [posts, setPosts] = useState<Post[]>([
-    // Sample posts from Feed component
-    {
-      id: '1',
-      userId: '2',
-      userName: 'Sarah Chen',
-      userAvatar: undefined,
-      content: "Just finished my first week at Google as a software engineering intern! The experience has been incredible so far. Working on real projects that impact millions of users is both exciting and challenging. Can't wait to share more updates! 🚀",
-      timestamp: new Date('2024-01-15T10:30:00'),
-      likes: 42,
-      comments: []
-    },
-    {
-      id: '2',
-      userId: '3',
-      userName: 'Alex Rodriguez',
-      userAvatar: undefined,
-      content: "Participating in our university's hackathon this weekend! Our team is building an AI-powered study buddy app. Excited to see what we can create in 48 hours. Anyone else participating in hackathons this season?",
-      image: 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=800',
-      timestamp: new Date('2024-01-14T16:45:00'),
-      likes: 28,
-      comments: []
-    },
-  ]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const addPost = (post: Post) => {
-    setPosts([post, ...posts]);
+  // Load posts from Supabase on mount
+  const refreshPosts = async () => {
+    try {
+      setLoading(true);
+      const supabasePosts = await db.getAllPosts();
+      const convertedPosts = supabasePosts.map(convertSupabasePost);
+      setPosts(convertedPosts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deletePost = (postId: string) => {
-    setPosts(posts.filter(post => post.id !== postId));
+  useEffect(() => {
+    refreshPosts();
+  }, []);
+
+  const addPost = async (post: Post) => {
+    try {
+      // Save to Supabase
+      const supabasePost = await db.createPost({
+        user_id: post.userId,
+        content: post.content,
+        image_url: post.image,
+        video_url: post.video,
+        likes: 0,
+        comments_count: 0,
+        shares_count: 0
+      });
+      
+      // Add to local state
+      const newPost = convertSupabasePost(supabasePost);
+      setPosts(prevPosts => [newPost, ...prevPosts]);
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw error;
+    }
   };
 
-  const updatePost = (postId: string, content: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId ? { ...post, content } : post
-    ));
+  const deletePost = async (postId: string) => {
+    try {
+      // Delete from Supabase
+      await db.deletePost(postId);
+      
+      // Remove from local state
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+  };
+
+  const updatePost = async (postId: string, content: string) => {
+    try {
+      // Update in Supabase
+      await db.updatePost(postId, { content });
+      
+      // Update local state
+      setPosts(prevPosts => prevPosts.map(post => 
+        post.id === postId ? { ...post, content } : post
+      ));
+    } catch (error) {
+      console.error('Error updating post:', error);
+      throw error;
+    }
   };
 
   const getUserPosts = (userId: string) => {
@@ -56,7 +107,7 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <PostsContext.Provider value={{ posts, addPost, deletePost, updatePost, getUserPosts }}>
+    <PostsContext.Provider value={{ posts, addPost, deletePost, updatePost, getUserPosts, loading, refreshPosts }}>
       {children}
     </PostsContext.Provider>
   );

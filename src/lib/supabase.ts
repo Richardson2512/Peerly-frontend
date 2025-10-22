@@ -435,6 +435,85 @@ export const db = {
     return data;
   },
 
+  // Post operations
+  async createPost(postData: Database['public']['Tables']['posts']['Insert']) {
+    const { data, error } = await supabase
+      .from('posts')
+      .insert(postData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getAllPosts(limit: number = 50, offset: number = 0) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        users (
+          id,
+          name,
+          avatar_url,
+          college,
+          course
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserPosts(userId: string) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        users (
+          id,
+          name,
+          avatar_url,
+          college,
+          course
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePost(postId: string, updates: Database['public']['Tables']['posts']['Update']) {
+    const { data, error } = await supabase
+      .from('posts')
+      .update(updates)
+      .eq('id', postId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePost(postId: string) {
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', postId);
+    
+    if (error) throw error;
+  },
+
+  async likePost(postId: string) {
+    const { data, error } = await supabase.rpc('increment_post_likes', { post_id: postId });
+    if (error) throw error;
+    return data;
+  },
+
   // Pro subscription operations
   async createProSubscription(subscriptionData: Database['public']['Tables']['pro_subscriptions']['Insert']) {
     const { data, error } = await supabase
