@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User as UserType } from '../types';
+import { User as UserType, Badge } from '../types';
 import { db } from '../lib/supabase';
+import { usePosts } from '../contexts/PostsContext';
 import { 
   MapPin, 
-  Calendar, 
-  Award as AwardIcon, 
-  GraduationCap, 
-  Star, 
   Eye, 
   Users, 
+  Star,
   ArrowLeft,
   MessageCircle,
   UserPlus,
-  Check
+  Check,
+  Calendar,
+  GraduationCap,
+  Linkedin,
+  Github,
+  Globe,
+  BookOpen,
+  User as UserIcon
 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ViewProfileProps {
   currentUser: UserType;
@@ -23,17 +29,21 @@ interface ViewProfileProps {
 const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { posts: allPosts } = usePosts();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<any>(null);
-  const [userBadges, setUserBadges] = useState<any[]>([]);
+  const [userBadges, setUserBadges] = useState<Badge[]>([]);
   const [sending, setSending] = useState(false);
+  const [activeTab, setActiveTab] = useState<'about' | 'activity' | 'events'>('about');
+  const [connectionCounts, setConnectionCounts] = useState({ peers: 0, followers: 0, following: 0 });
 
   useEffect(() => {
     if (userId) {
       loadUserProfile();
       loadConnectionStatus();
       loadUserBadges();
+      loadConnectionCounts();
     }
   }, [userId]);
 
@@ -67,6 +77,15 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
     }
   };
 
+  const loadConnectionCounts = async () => {
+    try {
+      const counts = await db.getConnectionCounts(userId!);
+      setConnectionCounts(counts);
+    } catch (error) {
+      console.error('Error loading connection counts:', error);
+    }
+  };
+
   const handleSendRequest = async () => {
     setSending(true);
     try {
@@ -90,6 +109,7 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
     try {
       await db.acceptConnectionRequest(connectionStatus.id, currentUser.id);
       await loadConnectionStatus();
+      await loadConnectionCounts();
       alert('Connection request accepted!');
     } catch (error) {
       console.error('Error accepting request:', error);
@@ -151,18 +171,19 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
 
     if (connectionStatus.status === 'accepted') {
       return (
-        <button
-          onClick={handleMessage}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <MessageCircle className="h-5 w-5 mr-2" />
-          Message
-        </button>
+        <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm flex items-center">
+          <Check className="h-5 w-5 mr-2" />
+          Connected
+        </span>
       );
     }
 
     return null;
   };
+
+  const userPosts = React.useMemo(() => {
+    return allPosts.filter(post => post.userId === userId);
+  }, [allPosts, userId]);
 
   if (loading) {
     return (
@@ -199,7 +220,7 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
 
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-        {/* Cover Photo */}
+        {/* Cover Photo - Not clickable for other users */}
         <div className="h-48 relative">
           {user.cover_photo_url ? (
             <img 
@@ -224,10 +245,10 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
           </div>
         </div>
 
-        {/* Student Info */}
-        <div className="px-6 pb-4">
-          <div className="flex items-start justify-between gap-6">
-            {/* Left - Info */}
+        {/* Student Info and Achievements */}
+        <div className="px-6 pb-4 relative">
+          <div className="flex items-start">
+            {/* Left Side - Student Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-4xl font-bold text-gray-900">{user.name}</h1>
@@ -240,7 +261,7 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
               </div>
               <p className="text-gray-600 text-base mb-3">{user.course} Student</p>
               
-              {/* College Info */}
+              {/* College Info with Logo */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                   {user.college.charAt(0)}
@@ -253,17 +274,30 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
                 </div>
               </div>
 
-              {/* Bio */}
-              {user.bio && (
-                <p className="text-sm text-gray-600 mb-4">{user.bio}</p>
-              )}
+              {/* Stats */}
+              <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
+                {user.location && (
+                  <div className="flex items-center">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    {user.location}
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <Eye className="h-3 w-3 mr-1" />
+                  {user.profile_views || 0} views
+                </div>
+                <div className="flex items-center">
+                  <Users className="h-3 w-3 mr-1" />
+                  {connectionCounts.followers} followers
+                </div>
+              </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3">
                 {getConnectionButton()}
                 <button
                   onClick={handleMessage}
-                  className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <MessageCircle className="h-5 w-5 mr-2" />
                   Message
@@ -271,13 +305,13 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
               </div>
             </div>
 
-            {/* Right - Badges */}
-            <div className="flex-1">
+            {/* Right Side - Top 3 Badges */}
+            <div className="absolute right-6 top-0">
               <h3 className="text-xs font-semibold text-gray-700 mb-2">Top Achievements</h3>
               <div className="space-y-1">
                 {userBadges.length > 0 ? (
                   userBadges.slice(0, 3).map((badge) => (
-                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1">
+                    <div key={badge.id} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded px-2 py-1 min-w-[250px]">
                       <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{badge.rank}</span>
                       </div>
@@ -293,66 +327,171 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
               </div>
             </div>
           </div>
+
+          {/* Bio */}
+          <div className="mb-4 mt-4">
+            {user.bio ? (
+              <p className="text-gray-700 text-sm leading-relaxed">{user.bio}</p>
+            ) : (
+              <p className="text-gray-500 text-sm italic">No bio yet.</p>
+            )}
+          </div>
+
+          {/* Social Links */}
+          <div className="flex gap-4">
+            {user.linkedin_url && (
+              <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:text-blue-700 text-sm">
+                <Linkedin className="h-4 w-4 mr-2" />
+                LinkedIn
+              </a>
+            )}
+            {user.github_url && (
+              <a href={user.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-700 hover:text-gray-800 text-sm">
+                <Github className="h-4 w-4 mr-2" />
+                GitHub
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Additional Info Sections */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>
-        
-        {/* Skills */}
-        {user.skills && user.skills.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Skills</h3>
-            <div className="flex flex-wrap gap-2">
-              {user.skills.map((skill: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Tabs */}
+      <div className="bg-white rounded-md shadow-sm mb-4">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-6 px-6">
+            {[
+              { id: 'about', label: 'About', icon: UserIcon },
+              { id: 'activity', label: 'Activity', icon: BookOpen },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center px-4 py-4 border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-purple-600 text-purple-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 mr-2" />
+                  <span className="font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
 
-        {/* Interests */}
-        {user.interests && user.interests.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Interests</h3>
-            <div className="flex flex-wrap gap-2">
-              {user.interests.map((interest: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Tab Content */}
+      <div className="bg-white rounded-md shadow-sm p-6">
+        {activeTab === 'about' && (
+          <div className="space-y-6">
+            {/* Skills */}
+            {user.skills && user.skills.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <GraduationCap className="h-5 w-5 mr-2 text-purple-600" />
+                  Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map((skill: string, index: number) => (
+                    <span key={index} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* All Badges */}
-        {userBadges.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Badges & Achievements</h3>
-            <div className="grid gap-3">
-              {userBadges.map((badge) => (
-                <div key={badge.id} className="border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold">{badge.rank}</span>
+            {/* Interests */}
+            {user.interests && user.interests.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Interests</h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.interests.map((interest: string, index: number) => (
+                    <span key={index} className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Badges */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Badges & Achievements</h3>
+              {userBadges.length > 0 ? (
+                <div className="grid gap-4">
+                  {userBadges.map((badge) => (
+                    <div key={badge.id} className="border border-gray-200 rounded-lg p-4 bg-gradient-to-r from-yellow-50 to-orange-50">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-lg font-bold">{badge.rank}</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 text-lg">{badge.title}</h4>
+                          <p className="text-sm text-gray-700 mb-1">{badge.event}</p>
+                          {badge.description && (
+                            <p className="text-sm text-gray-600 mb-2">{badge.description}</p>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            {new Date(badge.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{badge.title}</h4>
-                      <p className="text-sm text-gray-600">{badge.event}</p>
-                      {badge.description && (
-                        <p className="text-xs text-gray-500 mt-1">{badge.description}</p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(badge.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                      </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm italic">No badges yet</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'activity' && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Posts</h3>
+            {userPosts.length > 0 ? (
+              <div className="space-y-4">
+                {userPosts.map((post) => (
+                  <div key={post.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        {user.avatar_url ? (
+                          <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          getInitials(user.name)
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{user.name}</h4>
+                        <p className="text-xs text-gray-500">
+                          {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-gray-800 mb-3">{post.content}</p>
+                    {post.image && (
+                      <img src={post.image} alt="Post" className="w-full rounded-lg mb-3" />
+                    )}
+                    {post.video && (
+                      <video src={post.video} controls className="w-full rounded-lg mb-3" />
+                    )}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span>{post.likes} likes</span>
+                      <span>{post.comments?.length || 0} comments</span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500">No posts yet</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -361,4 +500,3 @@ const ViewProfile: React.FC<ViewProfileProps> = ({ currentUser }) => {
 };
 
 export default ViewProfile;
-
