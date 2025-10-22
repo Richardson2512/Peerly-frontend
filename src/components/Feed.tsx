@@ -100,6 +100,23 @@ const Feed: React.FC<FeedProps> = ({ user }) => {
     });
   }, [globalMute]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown) {
+        setOpenDropdown(null);
+      }
+    };
+
+    if (openDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
+
   // Content moderation keywords
   const inappropriateKeywords = [
     'nude', 'naked', 'sex', 'sexual', 'porn', 'pornography', 'xxx', 'adult', 'explicit',

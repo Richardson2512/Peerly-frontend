@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { User, Post, Event } from '../types';
 import { uploadPostMedia } from '../lib/storage';
 import { usePosts } from '../contexts/PostsContext';
@@ -64,6 +64,23 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
   // Recommended events (empty for new users, would be fetched from backend)
   const recommendedEvents: Event[] = [];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openPostDropdown) {
+        setOpenPostDropdown(null);
+      }
+    };
+
+    if (openPostDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openPostDropdown]);
 
   const handleCreatePost = async () => {
     if (!newPost.trim()) return;
