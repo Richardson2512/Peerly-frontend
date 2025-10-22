@@ -291,11 +291,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
         {/* Student Info Section - Below Cover Photo */}
         <div className="px-6 pb-6">
-          <div className="flex items-start justify-between mb-6 pt-4">
+          <div className="flex items-start justify-between mb-6">
             {/* Left Side - Student Info */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
+              <div className="flex items-center gap-2 mb-3">
+                <h1 className="text-4xl font-bold text-gray-900">{user.name}</h1>
                 {user.isPro && (
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
                     <Star className="h-4 w-4 mr-1" />
@@ -303,33 +303,33 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   </span>
                 )}
               </div>
-              <p className="text-gray-600 text-lg mb-4">{user.course} Student</p>
+              <p className="text-gray-600 text-base mb-4">{user.course} Student</p>
               
               {/* College Info with Logo */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                   {user.college.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{user.college}</p>
-                  <p className="text-sm text-gray-600">{user.courseLevel.charAt(0).toUpperCase() + user.courseLevel.slice(1)} Program</p>
+                  <p className="font-medium text-gray-900 text-sm">{user.college}</p>
+                  <p className="text-xs text-gray-600">{user.courseLevel.charAt(0).toUpperCase() + user.courseLevel.slice(1)} Program</p>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-xs text-gray-500">
                 {user.location && (
                   <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
+                    <MapPin className="h-3 w-3 mr-1" />
                     {user.location}
                   </div>
                 )}
                 <div className="flex items-center">
-                  <Eye className="h-4 w-4 mr-1" />
+                  <Eye className="h-3 w-3 mr-1" />
                   {user.profileViews.toLocaleString()} profile views
                 </div>
                 <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-1" />
+                  <Users className="h-3 w-3 mr-1" />
                   {user.followers.length} followers
                 </div>
               </div>
