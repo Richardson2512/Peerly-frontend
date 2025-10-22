@@ -31,7 +31,9 @@ import {
   X,
   Image as ImageIcon,
   Smile,
-  Camera
+  Camera,
+  Trash2,
+  Link as LinkIcon
 } from 'lucide-react';
 
 interface ProfileProps {
@@ -52,6 +54,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [tempMediaUrl, setTempMediaUrl] = useState<string | null>(null);
   const [mediaValidationResult, setMediaValidationResult] = useState<any>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [openPostDropdown, setOpenPostDropdown] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context
@@ -107,7 +110,21 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const handleDeletePost = (postId: string) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       deletePostFromContext(postId);
+      setOpenPostDropdown(null);
     }
+  };
+
+  const handleCopyPostLink = (postId: string) => {
+    const postLink = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(postLink);
+    alert('Post link copied to clipboard!');
+    setOpenPostDropdown(null);
+  };
+
+  const handleEditPost = (postId: string) => {
+    // Edit functionality can be implemented later
+    alert('Edit functionality coming soon!');
+    setOpenPostDropdown(null);
   };
 
   const handleMediaFileSelect = (file: File, validationResult?: any) => {
@@ -567,13 +584,49 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                           </div>
                         </div>
                         
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                        >
-                          <MoreHorizontal className="h-5 w-5" />
-                        </button>
+                        {/* Post Actions Menu */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenPostDropdown(openPostDropdown === post.id ? null : post.id)}
+                            className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                          >
+                            <MoreHorizontal className="h-5 w-5" />
+                          </button>
+                          
+                          {/* Dropdown Menu */}
+                          {openPostDropdown === post.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1">
+                              {/* Edit Post */}
+                              <button
+                                onClick={() => handleEditPost(post.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                              >
+                                <Edit className="h-4 w-4 mr-3 text-blue-500" />
+                                Edit Post
+                              </button>
+                              
+                              {/* Delete Post */}
+                              <button
+                                onClick={() => handleDeletePost(post.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4 mr-3 text-red-500" />
+                                Delete Post
+                              </button>
+                              
+                              <div className="border-t border-gray-200 my-1"></div>
+                              
+                              {/* Copy Link */}
+                              <button
+                                onClick={() => handleCopyPostLink(post.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center transition-colors"
+                              >
+                                <LinkIcon className="h-4 w-4 mr-3 text-gray-500" />
+                                Copy Link
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
