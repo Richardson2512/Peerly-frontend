@@ -102,6 +102,44 @@ export interface Database {
           updated_at?: string;
         };
       };
+      badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          event: string;
+          rank: string;
+          date: string;
+          category: 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other';
+          description?: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          event: string;
+          rank: string;
+          date: string;
+          category: 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other';
+          description?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          event?: string;
+          rank?: string;
+          date?: string;
+          category?: 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other';
+          description?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       connections: {
         Row: {
           id: string;
@@ -536,5 +574,49 @@ export const db = {
     
     if (error && error.code !== 'PGRST116') throw error;
     return data;
+  },
+
+  // Badge operations
+  async createBadge(badgeData: Database['public']['Tables']['badges']['Insert']) {
+    const { data, error } = await supabase
+      .from('badges')
+      .insert(badgeData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserBadges(userId: string) {
+    const { data, error } = await supabase
+      .from('badges')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateBadge(badgeId: string, updates: Database['public']['Tables']['badges']['Update']) {
+    const { data, error } = await supabase
+      .from('badges')
+      .update(updates)
+      .eq('id', badgeId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteBadge(badgeId: string) {
+    const { error } = await supabase
+      .from('badges')
+      .delete()
+      .eq('id', badgeId);
+    
+    if (error) throw error;
   }
 };

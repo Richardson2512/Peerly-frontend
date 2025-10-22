@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS public.pro_subscriptions CASCADE;
 DROP TABLE IF EXISTS public.courses CASCADE;
 DROP TABLE IF EXISTS public.internships CASCADE;
 DROP TABLE IF EXISTS public.connections CASCADE;
+DROP TABLE IF EXISTS public.badges CASCADE;
 DROP TABLE IF EXISTS public.posts CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 
@@ -58,6 +59,20 @@ CREATE TABLE public.posts (
   likes INTEGER DEFAULT 0,
   comments_count INTEGER DEFAULT 0,
   shares_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Badges table
+CREATE TABLE public.badges (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  event TEXT NOT NULL,
+  rank TEXT NOT NULL,
+  date DATE NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('hackathon', 'competition', 'academic', 'sports', 'cultural', 'other')),
+  description TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -149,6 +164,8 @@ CREATE TABLE public.notifications (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON public.posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON public.posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_badges_user_id ON public.badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_badges_created_at ON public.badges(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_connections_user_id ON public.connections(user_id);
 CREATE INDEX IF NOT EXISTS idx_connections_connected_user_id ON public.connections(connected_user_id);
 CREATE INDEX IF NOT EXISTS idx_connections_status ON public.connections(status);
@@ -160,6 +177,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
@@ -188,6 +206,19 @@ CREATE POLICY "Users can update their own posts" ON public.posts
   FOR UPDATE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete their own posts" ON public.posts
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- RLS Policies for Badges table
+CREATE POLICY "Anyone can view badges" ON public.badges
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can create their own badges" ON public.badges
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own badges" ON public.badges
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own badges" ON public.badges
   FOR DELETE USING (auth.uid() = user_id);
 
 -- RLS Policies for Connections table
@@ -246,6 +277,9 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_posts_updated_at BEFORE UPDATE ON public.posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_badges_updated_at BEFORE UPDATE ON public.badges
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_connections_updated_at BEFORE UPDATE ON public.connections

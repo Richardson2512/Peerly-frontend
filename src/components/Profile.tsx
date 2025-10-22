@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { User, Post, Event } from '../types';
 import { uploadPostMedia } from '../lib/storage';
 import { usePosts } from '../contexts/PostsContext';
+import { db } from '../lib/supabase';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import MediaUploadModal from './MediaUploadModal';
 import MediaEditor from './MediaEditor';
@@ -68,6 +69,8 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     category: 'other' as 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other',
     description: ''
   });
+  const [userBadges, setUserBadges] = useState<any[]>([]);
+  const [loadingBadges, setLoadingBadges] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get user's posts from shared context - memoized to update when posts change
@@ -77,6 +80,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
   // Recommended events (empty for new users, would be fetched from backend)
   const recommendedEvents: Event[] = [];
+
+  // Load user badges on component mount
+  useEffect(() => {
+    loadUserBadges();
+  }, [user.id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -265,33 +273,63 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     setShowAddBadgeModal(true);
   };
 
-  const handleSaveBadge = () => {
+  const loadUserBadges = async () => {
+    if (!user.id) return;
+    
+    setLoadingBadges(true);
+    try {
+      const badges = await db.getUserBadges(user.id);
+      setUserBadges(badges || []);
+    } catch (error) {
+      console.error('Error loading badges:', error);
+    } finally {
+      setLoadingBadges(false);
+    }
+  };
+
+  const handleSaveBadge = async () => {
     if (!newBadge.title.trim() || !newBadge.event.trim() || !newBadge.rank.trim()) {
       alert('Please fill in all required fields (Title, Event, Rank)');
       return;
     }
 
-    const badge = {
-      id: Date.now().toString(),
-      ...newBadge,
-      date: newBadge.date || new Date().toISOString().split('T')[0]
-    };
+    if (!user.id) {
+      alert('User not found. Please log in again.');
+      return;
+    }
 
-    // TODO: Save to database
-    console.log('Adding badge:', badge);
-    
-    // Reset form
-    setNewBadge({
-      title: '',
-      event: '',
-      rank: '',
-      date: '',
-      category: 'other',
-      description: ''
-    });
-    
-    setShowAddBadgeModal(false);
-    alert('Badge added successfully! (Note: This is a demo - badge will be saved to database in full implementation)');
+    try {
+      const badgeData = {
+        user_id: user.id,
+        title: newBadge.title.trim(),
+        event: newBadge.event.trim(),
+        rank: newBadge.rank.trim(),
+        date: newBadge.date || new Date().toISOString().split('T')[0],
+        category: newBadge.category,
+        description: newBadge.description.trim() || undefined
+      };
+
+      await db.createBadge(badgeData);
+      
+      // Reload badges
+      await loadUserBadges();
+      
+      // Reset form
+      setNewBadge({
+        title: '',
+        event: '',
+        rank: '',
+        date: '',
+        category: 'other',
+        description: ''
+      });
+      
+      setShowAddBadgeModal(false);
+      alert('Badge added successfully!');
+    } catch (error) {
+      console.error('Error saving badge:', error);
+      alert('Failed to save badge. Please try again.');
+    }
   };
 
   const handleCancelBadge = () => {
@@ -680,24 +718,34 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {user.badges?.map((badge, index) => (
-                    <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-sm font-bold">{badge.rank}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.title}</h4>
-                          <p className="text-xs text-gray-600 mb-2">{badge.event}</p>
-                          <p className="text-xs text-gray-500">{badge.date}</p>
+                  {loadingBadges ? (
+                    <div className="col-span-full text-center py-8 text-gray-500">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-3"></div>
+                      <p className="text-sm">Loading badges...</p>
+                    </div>
+                  ) : userBadges.length > 0 ? (
+                    userBadges.map((badge) => (
+                      <div key={badge.id} className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-bold">{badge.rank}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.title}</h4>
+                            <p className="text-xs text-gray-600 mb-2">{badge.event}</p>
+                            <p className="text-xs text-gray-500">{new Date(badge.date).toLocaleDateString()}</p>
+                            {badge.description && (
+                              <p className="text-xs text-gray-600 mt-1 italic">{badge.description}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )) || (
+                    ))
+                  ) : (
                     <div className="col-span-full text-center py-8 text-gray-500">
                       <AwardIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                       <p className="text-sm">No achievements yet</p>
-                      <p className="text-xs text-gray-400 mt-1">Participate in events and competitions to earn badges!</p>
+                      <p className="text-xs text-gray-400 mt-1">Click the + button to add your first badge!</p>
                     </div>
                   )}
                 </div>
