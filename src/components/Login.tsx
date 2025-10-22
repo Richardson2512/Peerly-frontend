@@ -107,6 +107,26 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               companyRecommendations: [
                 { id: '1', companyName: 'Google', recommenderName: 'Sarah Johnson', recommenderTitle: 'Senior Software Engineer', recommendation: 'John was an excellent intern with strong problem-solving skills.', date: new Date('2024-09-01'), rating: 5 }
               ],
+              badges: [
+                {
+                  id: '1',
+                  title: '1st Place',
+                  event: 'Stanford Hackathon 2024',
+                  rank: '1st',
+                  date: '2024-03-15',
+                  category: 'hackathon',
+                  description: 'Won first place with our blockchain voting system'
+                },
+                {
+                  id: '2',
+                  title: 'Best Design',
+                  event: 'UI/UX Competition',
+                  rank: '1st',
+                  date: '2024-02-20',
+                  category: 'competition',
+                  description: 'Awarded for most innovative user interface design'
+                }
+              ],
               isAccountActive: true,
               profileViews: 1250,
               location: 'Stanford, CA',
@@ -163,6 +183,35 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               companyRecommendations: [
                 { id: '1', companyName: 'Google', recommenderName: 'Dr. Michael Zhang', recommenderTitle: 'Staff Software Engineer', recommendation: 'Sarah is an exceptional talent with deep understanding of AI/ML concepts.', date: new Date('2024-09-01'), rating: 5 },
                 { id: '2', companyName: 'MIT AI Lab', recommenderName: 'Prof. Lisa Wang', recommenderTitle: 'Research Director', recommendation: 'Outstanding research skills and innovative thinking.', date: new Date('2024-06-01'), rating: 5 }
+              ],
+              badges: [
+                {
+                  id: '1',
+                  title: '1st Place',
+                  event: 'MIT AI Competition 2024',
+                  rank: '1st',
+                  date: '2024-04-15',
+                  category: 'competition',
+                  description: 'Won first place in the prestigious AI competition'
+                },
+                {
+                  id: '2',
+                  title: 'Best Research',
+                  event: 'NeurIPS 2024',
+                  rank: '1st',
+                  date: '2024-03-20',
+                  category: 'academic',
+                  description: 'Best paper award for innovative machine learning research'
+                },
+                {
+                  id: '3',
+                  title: 'Innovation Award',
+                  event: 'TechCrunch Disrupt',
+                  rank: '1st',
+                  date: '2024-02-10',
+                  category: 'competition',
+                  description: 'Awarded for most innovative AI startup pitch'
+                }
               ],
               isAccountActive: true,
               profileViews: 3250,
@@ -268,6 +317,35 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               certifications: [],
               internships: [],
               companyRecommendations: [],
+              badges: [
+                {
+                  id: '1',
+                  title: '1st Place',
+                  event: 'Anna University Hackathon 2024',
+                  rank: '1st',
+                  date: '2024-03-15',
+                  category: 'hackathon',
+                  description: 'Won first place in the annual hackathon with our AI-powered study assistant'
+                },
+                {
+                  id: '2',
+                  title: 'Best Innovation',
+                  event: 'TechFest 2024',
+                  rank: '1st',
+                  date: '2024-02-20',
+                  category: 'competition',
+                  description: 'Awarded for most innovative project in the technology showcase'
+                },
+                {
+                  id: '3',
+                  title: 'Top Performer',
+                  event: 'Coding Competition',
+                  rank: '2nd',
+                  date: '2024-01-10',
+                  category: 'competition',
+                  description: 'Secured second place in the inter-college coding competition'
+                }
+              ],
               isAccountActive: true,
               profileViews: 0
             };
@@ -324,6 +402,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             certifications: [],
             internships: [],
             companyRecommendations: [],
+            badges: [],
             isAccountActive: userProfile.is_account_active,
             profileViews: userProfile.profile_views || 0,
             location: userProfile.location,

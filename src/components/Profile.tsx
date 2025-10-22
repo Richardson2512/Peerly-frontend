@@ -289,9 +289,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           </button>
         </div>
 
-        {/* Profile Info */}
+        {/* Student Info Section - Below Cover Photo */}
         <div className="px-6 pb-6">
-          <div className="flex items-center justify-between mb-4 pt-4">
+          <div className="flex items-start justify-between mb-6 pt-4">
+            {/* Left Side - Student Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
@@ -302,8 +303,21 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   </span>
                 )}
               </div>
-              <p className="text-gray-600 text-lg">{user.course} Student at {user.college}</p>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+              <p className="text-gray-600 text-lg mb-4">{user.course} Student</p>
+              
+              {/* College Info with Logo */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                  {user.college.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">{user.college}</p>
+                  <p className="text-sm text-gray-600">{user.courseLevel.charAt(0).toUpperCase() + user.courseLevel.slice(1)} Program</p>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-4 text-sm text-gray-500">
                 {user.location && (
                   <div className="flex items-center">
                     <MapPin className="h-4 w-4 mr-1" />
@@ -321,7 +335,28 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               </div>
             </div>
 
-            <div className="relative">
+            {/* Right Side - Top 3 Badges */}
+            <div className="ml-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Achievements</h3>
+              <div className="space-y-2">
+                {user.badges?.slice(0, 3).map((badge, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg px-3 py-2">
+                    <div className="w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{badge.rank}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{badge.title}</p>
+                      <p className="text-xs text-gray-600 truncate">{badge.event}</p>
+                    </div>
+                  </div>
+                )) || (
+                  <div className="text-sm text-gray-500 italic">No achievements yet</div>
+                )}
+              </div>
+            </div>
+
+            {/* Profile Actions */}
+            <div className="relative ml-4">
               <button 
                 onClick={() => setOpenProfileDropdown(!openProfileDropdown)}
                 className="border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -536,6 +571,36 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                   </div>
                 </div>
               )}
+
+              {/* Badges & Achievements */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <AwardIcon className="h-5 w-5 mr-2 text-purple-600" />
+                  Badges & Achievements
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {user.badges?.map((badge, index) => (
+                    <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-sm font-bold">{badge.rank}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.title}</h4>
+                          <p className="text-xs text-gray-600 mb-2">{badge.event}</p>
+                          <p className="text-xs text-gray-500">{badge.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="col-span-full text-center py-8 text-gray-500">
+                      <AwardIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">No achievements yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Participate in events and competitions to earn badges!</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Company Recommendations */}
               {user.companyRecommendations.length > 0 && (

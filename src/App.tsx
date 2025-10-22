@@ -45,7 +45,8 @@ function App() {
             companyRecommendations: userData.companyRecommendations?.map((rec: any) => ({
               ...rec,
               date: new Date(rec.date)
-            })) || []
+            })) || [],
+            badges: userData.badges || []
           };
 
           // Check if account is still active
@@ -105,6 +106,7 @@ function App() {
             connectionRequests: [], // Will be loaded separately
             skills: userProfile.skills,
             interests: userProfile.interests,
+            badges: [], // Will be loaded separately
             isAccountActive: userProfile.is_account_active
           };
 

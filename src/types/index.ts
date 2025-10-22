@@ -24,6 +24,7 @@ export interface User {
   certifications: Certification[];
   internships: UserInternship[];
   companyRecommendations: CompanyRecommendation[];
+  badges: Badge[];
   isAccountActive: boolean;
   profileViews: number;
   location?: string;
@@ -263,6 +264,16 @@ export interface Award {
   issuer: string;
   date: Date;
   category: 'academic' | 'professional' | 'competition' | 'hackathon' | 'other';
+}
+
+export interface Badge {
+  id: string;
+  title: string;
+  event: string;
+  rank: string;
+  date: string;
+  category: 'hackathon' | 'competition' | 'academic' | 'sports' | 'cultural' | 'other';
+  description?: string;
 }
 
 export interface Achievement {
